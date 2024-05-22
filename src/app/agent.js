@@ -2,7 +2,7 @@ import axios from "axios";
 
 // axios.defaults.baseURL = "https://ibommarket.azurewebsites.net/api/";
 // axios.defaults.baseURL = "https://my-ibm-backend.onrender.com/";
-axios.defaults.baseURL = "http://localhost:3000/"; 
+axios.defaults.baseURL = "https://ibommarketbackend.onrender.com/"; 
 axios.defaults.withCredentials = false;
 const responseBody = (response) => response.data;
 
