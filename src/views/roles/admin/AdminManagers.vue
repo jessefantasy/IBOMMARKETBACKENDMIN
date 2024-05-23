@@ -450,4 +450,7 @@ const sendDeleteManagerRequest = async () => {
   left: -90px;
   min-width: 8rem;
 }
+.card-body {
+  margin-bottom: 50px
+}
 </style>

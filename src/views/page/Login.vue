@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import useVuelidate from "@vuelidate/core";
-import { required, helpers } from "@vuelidate/validators";
+import { required, helpers , email } from "@vuelidate/validators";
 import agent from "../../app/agent.js";
 import { message as antMessage } from "ant-design-vue";
 import { useRouter } from "vue-router";
@@ -30,7 +30,7 @@ const data: dataInterface = reactive({
 
 const rules = {
   username: {
-    required: helpers.withMessage("Username field cannot be empty", required),
+    required: helpers.withMessage("email field cannot be empty", required), email
   },
   password: {
     required: helpers.withMessage("password field cannot be empty", required),
@@ -119,7 +119,7 @@ async function submitForm() {
                 v-model="data.username"
                 :class="{ error: v$.username.$errors[0] }"
                 class="form-control"
-                placeholder="username"
+                placeholder="Email"
                 type="text"
               />
               <span
@@ -136,7 +136,7 @@ async function submitForm() {
                 v-model="data.password"
                 :class="{ error: v$.password.$errors[0] }"
                 class="form-control"
-                placeholder="password"
+                placeholder="Password"
                 type="password"
               />
               <span
