@@ -15,6 +15,7 @@ import ManagerAdverts from "./views/roles/manager/ManagerAdverts.vue";
 import ManagerCategories from "./views/roles/manager/ManagerCategories.vue";
 import ManagerSubCategories from "./views/roles/manager/ManagerSubCategories.vue";
 import ManagerUsers from "./views/roles/manager/ManagerUsers.vue";
+import ManagerActivation from "./views/roles/manager/ManagerActivation.vue";
 //
 //
 //
@@ -159,6 +160,11 @@ const router = createRouter({
       path: "/manager/users",
       name: "Manager Users",
       component: ManagerUsers,
+    },
+    {
+      path: "/manager/activate-role",
+      name: "Manager Activation",
+      component: ManagerActivation,
     },
     //
     //

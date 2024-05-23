@@ -128,9 +128,12 @@ const UrgentRequests = {
 };
 const Managers = {
   getAll : () => requests.get("/admin-get-manager"),
-  addManager : (data) => requests.post("/admin-add-manager" , data)
+  addManager : (data) => requests.post("/admin-add-manager" , data),
+  adminDelete :(id) => requests.delete("/admin-delete-manager/" + id ),
+  adminPauseResume :(id , type) => requests.patch("/admin-pause-resume-manager/" + id , type ),
+  activate : (token) => requests.post("/manager/activate/" , token)
 }
-const agent = {
+const agent = { 
   Cards,
   Account,
   Advert,

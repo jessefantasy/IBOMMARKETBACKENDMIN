@@ -1,9 +1,17 @@
 <script setup>
 import { reactive } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink , useRouter} from "vue-router";
+const router = useRouter()
 const dropdownStates = reactive({
   categories: false,
 });
+const logoutFunction = () => {
+  localStorage.removeItem("ibmManagementToken")
+
+  setTimeout(function() {
+    router.push("/login")
+  }, 1000);
+}
 </script>
 <template>
   <aside class="navbar-aside" id="offcanvas_aside">
@@ -44,6 +52,17 @@ const dropdownStates = reactive({
             <i class="icon material-icons md-home"></i>
             <span class="text">Managers</span>
           </RouterLink>
+        </li> 
+        <li
+          class="menu-item"
+          :class="{
+            active: $route.path == '/admin/posts',
+          }"
+        >
+          <RouterLink class="menu-link" to="/admin/posts">
+            <i class="icon material-icons md-home"></i>
+            <span class="text">Posts</span>
+          </RouterLink>
         </li>    
       </ul>
       <hr />
@@ -59,10 +78,10 @@ const dropdownStates = reactive({
           </div>
         </li>
         <li class="menu-item">
-          <a class="menu-link" href="page-blank.html">
+          <div  @click="logoutFunction" class="menu-link cursor" >
             <i class="icon material-icons md-local_offer"></i>
-            <span class="text"> Starter page </span>
-          </a>
+            <span class="text"> Logout </span>
+          </div>
         </li>
       </ul>
       <br />
@@ -70,3 +89,9 @@ const dropdownStates = reactive({
     </nav>
   </aside>
 </template>
+
+<style scoped>
+  .cursor {
+    cursor: pointer;
+  }
+</style>

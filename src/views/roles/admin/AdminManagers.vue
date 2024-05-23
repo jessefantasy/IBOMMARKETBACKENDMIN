@@ -7,17 +7,21 @@ import * as DummyJson from "@/store/dummy.json";
 import AsideAdmin from "../../generic/AsideAdmin.vue";
 import Header from "../../generic/Header.vue";
 import NoProfileImage from "../../../assets/imgs/people/no-profile.ico"
-
+import {useRouter} from "vue-router"
 import useVuelidate from "@vuelidate/core";
 import { required, helpers , email } from "@vuelidate/validators";
 
+
+const router = useRouter()
 if(!localStorage.getItem("ibmManagementToken")) { 
   router.push("/login")
 }
+const holdManagers = ref([])
 const fetchData = async () => { 
   try {
     const res = await agent.Managers.getAll();
     console.log(res);
+    holdManagers.value = res.managers
     return res.managers;
   } catch (err) {
     console.log(err);
@@ -46,8 +50,11 @@ function handleDateChange() {
   console.log(userDateFilterValue.value);
 }
  
+const activeManagerId = ref(null)
 const openedDetailsMenuIndex = ref(null);
-function handleMenuClicked(index) {
+const openDeleteModal = ref(false)
+function handleMenuClicked(index , id) {
+  activeManagerId.value = id
   console.log(index);
   if (index !== openedDetailsMenuIndex.value) {
     openedDetailsMenuIndex.value = index;
@@ -66,7 +73,7 @@ const { isLoading, data, error, isError } = useQuery({
   keepPreviousData: true,
 });
 
- const postAddManagerForm = async () => {
+const postAddManagerForm = async () => {
   const result = await v$.value.$validate();
   if(!result) {
     return antMessage.error("Input all required fields")
@@ -81,6 +88,43 @@ const { isLoading, data, error, isError } = useQuery({
   } finally{
     addingNewManager.value = false
 
+  }
+ }
+
+ // delete manager
+const deletingManager = ref(false)
+const sendDeleteManagerRequest = async () => {
+
+  deletingManager.value = true
+  addingNewManager.value = true
+  try{
+    await agent.Managers.adminDelete(data.value[openedDetailsMenuIndex.value]._id)
+    antMessage.success("Manager deleter")
+    openDeleteModal.value = false
+  } catch(error) {
+    console.log(error)
+    antMessage.error("Manager not deleted")
+  } finally {
+    deletingManager.value = false
+    addingNewManager.value = false
+    openedDetailsMenuIndex.value = null
+  }
+ }
+
+ const pausingManager = ref(false)
+ const sendPauseResumeManagerRequest = async (type) => {
+  pausingManager.value = true
+  addingNewManager.value = true
+  // if(type ==)
+  try{
+    await agent.Managers.adminPauseResume(data.value[openedDetailsMenuIndex.value]._id , {type} )
+    antMessage.success("Manager " +   type == 'active' ? "resumed" : "paused" )
+  addingNewManager.value = false
+  } catch(error) {
+    console.log(error)
+    antMessage.error("Manager pause request failed")
+  } finally {
+    openedDetailsMenuIndex.value = null
   }
  }
  
@@ -147,7 +191,7 @@ const { isLoading, data, error, isError } = useQuery({
         </header>
         <!-- card-header end// -->
         <div class="card-body">
-          <article v-for="(card, index) in data" class="itemlist">
+          <article v-for="(card, index) in data || holdManagers" class="itemlist">
 
             <div class="row align-items-center">
              
@@ -183,8 +227,9 @@ const { isLoading, data, error, isError } = useQuery({
                   <!-- badge badge-pill badge-soft-warning -->
 
                   <span v-if="card.status == 'active' " class="badge badge-pill badge-soft-success">{{ card.status }}</span>
-                  <span v-else-if="card.status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.status }}</span> 
-                  <span v-else-if="card.status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.status }}</span> 
+                  <span v-if="card.status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.status }}</span> 
+                  <span v-if="card.status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.status }}</span> 
+                  <span style="background: #00000049" v-if="card.status == 'paused' " class="badge badge-pill">{{ card.status }}</span> 
                 </div>
               <div class="col-lg-2 col-sm-3 col-4 col-date">
                 <span> {{ new Date(card.createdAt).toLocaleString() }} </span>
@@ -199,7 +244,7 @@ const { isLoading, data, error, isError } = useQuery({
                 </div>
                 <div class="dropdown">
                   <div
-                    @click="handleMenuClicked(index)"
+                    @click="handleMenuClicked(index, card._id)"
                     data-bs-toggle="dropdown"
                     class="btn btn-light rounded btn-sm font-sm"
                   >
@@ -209,16 +254,22 @@ const { isLoading, data, error, isError } = useQuery({
                     :class="{ show: openedDetailsMenuIndex == index }"
                     class="dropdown-menu"
                   > 
-                    <div style="cursor: pointer" class="dropdown-item">
+                    <div 
+                    @click="sendPauseResumeManagerRequest('active')"
+                      v-if="card.status == 'paused' " 
+                      style="cursor: pointer" class="dropdown-item">
                       Resume
                     </div>
 
-                    <div style="cursor: pointer" class="dropdown-item">
+                    <div 
+                        @click="sendPauseResumeManagerRequest('paused')"
+                       v-if="card.status == 'active' " 
+                      style="cursor: pointer" class="dropdown-item">
                       Pause
-                    </div>
+                    </div> 
                     <div
                       style="cursor: pointer"
-                      @click="openRejectModal"
+                      @click="openDeleteModal = true"
                       class="dropdown-item text-warn"
                     >
                       Delete
@@ -316,7 +367,38 @@ const { isLoading, data, error, isError } = useQuery({
             Add manager
           </a-button>
         </form>
-      </a-modal>
+    </a-modal>
+     <a-modal
+        :footer="null"
+        v-model:open="openDeleteModal"
+        @afterClose="openDeleteModal = false"
+        title="Delete manager advert"
+        centered
+        style="padding: 20px 10px"
+      > 
+          <h5>Do you want to remove this manager?</h5>
+           <h5>full name : {{ data[openedDetailsMenuIndex]?.fullName }} </h5>
+           <h5 style="margin-bottom: 20px">email : {{ data[openedDetailsMenuIndex]?.email }} </h5>
+          <a-button
+            type="primary"
+            class="btn btn-md rounded font-sm hover-up"
+            :loading="deletingManager"
+            size="large"
+            @click="sendDeleteManagerRequest"
+          >
+             Yes
+          </a-button> 
+          <a-button
+            type=""
+            class="btn btn-md rounded font-sm hover-up"
+            :loading="addingNewManager"
+            size="large"
+            @click="openDeleteModal = false ; openedDetailsMenuIndex = null"
+            style="margin-left: 10px; background: #00000040 ; "
+          >
+             No
+          </a-button> 
+    </a-modal>
 
   
 </template>

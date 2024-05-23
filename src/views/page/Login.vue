@@ -14,6 +14,8 @@ const AdminStore = Store();
 //   /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
 // );
 const router = useRouter();
+  localStorage.removeItem("ibmManagementToken")
+
 
 interface dataInterface {
   username: string;

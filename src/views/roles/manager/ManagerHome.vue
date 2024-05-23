@@ -4,90 +4,17 @@ import agent from "@/app/agent.js";
 import { useQuery } from "@tanstack/vue-query";
 import { message as antMessage } from "ant-design-vue";
 import * as DummyJson from "@/store/dummy.json";
-// import AsideManager from "@/views/generic/AsideManager.vue";
+import {Store} from "@/store/AdminStore.js";
 import AsideManager from "../../generic/AsideManager.vue";
 import Header from "../../generic/Header.vue";
+import {useRouter} from "vue-router"
 
-const fetchData = async () => {
-  return DummyJson.Posts;
-  // try {
-  //   const res = await agent.Properties.get();
-  //   console.log(res);
-  //   return res;
-  // } catch (err) {
-  //   console.log(err);
-  //   return [];
-  // }
-};
-const pageNumber = ref(1);
-const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Posts", pageNumber.value],
-  queryFn: () => fetchData(),
-  keepPreviousData: true,
-});
-function formartPrice(price) {
-  return "₦  " + price.toLocaleString();
+const AdminStore = Store()
+const router = useRouter()
+if(!localStorage.getItem("ibmManagementToken")) { 
+  router.push("/login")
 }
-const detailModalOpened = ref(false);
-const showModal = () => {
-  open.value = true;
-};
-const handleOk = (e) => {
-  console.log(e);
-  open.value = false;
-};
-const detailsIndex = ref(null);
-
-function openDetailsModal(argument, index) {
-  detailsIndex.value = index;
-  detailModalOpened.value = true;
-  console.log(argument);
-}
-const userDateFilterValue = ref(null);
-
-function handleDateChange() {
-  console.log(userDateFilterValue.value);
-}
-function separatePascalCase(inputStr) {
-  const words = inputStr.match(/[A-Z][a-z]*/g);
-  return words.join(" ");
-}
-const openedDetailsMenuIndex = ref(null);
-function handleMenuClicked(index) {
-  console.log(index);
-  if (index !== openedDetailsMenuIndex.value) {
-    openedDetailsMenuIndex.value = index;
-  } else {
-    openedDetailsMenuIndex.value = null;
-  }
-}
-const rejectModalVisible = ref(false);
-const rejectReasons = ref([]);
-const rejectReasonsInput = ref("");
-const addRejectReason = function () {
-  if (rejectReasonsInput.value) {
-    rejectReasons.value.push(rejectReasonsInput.value);
-    rejectReasonsInput.value = "";
-  }
-};
-const removeRejectReason = function (index) {
-  console.log(index);
-  const newRejects = [];
-  rejectReasons.value.forEach((value, place) => {
-    console.log(value);
-    if (place != index) {
-      return newRejects.push(value);
-    }
-  });
-  rejectReasons.value = newRejects;
-};
-const sendRejectRequest = function () {
-  rejectModalVisible.value = false;
-  antMessage.success("Post rejected");
-};
-const openRejectModal = function () {
-  rejectModalVisible.value = true;
-};
+ 
 </script>
 
 <template>
@@ -104,7 +31,7 @@ const openRejectModal = function () {
     <section class="content-main">
       <div class="content-header">
         <div>
-          <h2 class="content-title card-title">Welcome Harrison</h2>
+          <h2 class="content-title card-title">Welcome {{ AdminStore.Admin?.fullName }}</h2>
           <p>Manage Ibommarket here</p>
         </div>
         <div>
@@ -123,91 +50,6 @@ const openRejectModal = function () {
               ></span>
               <div class="text">
                 <h6 class="mb-1 card-title">
-                  <RouterLink class="main" to="/manager/businesses">
-                    Businesses
-                  </RouterLink>
-                </h6>
-                <span> 5 </span>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="card card-body mb-4">
-            <article class="icontext">
-              <span class="icon icon-sm rounded-circle bg-primary-light"
-                ><i class="text-primary material-icons md-monetization_on"></i
-              ></span>
-              <div class="text">
-                <h6 class="mb-1 card-title">
-                  <RouterLink class="main" to="/manager/users">
-                    Users
-                  </RouterLink>
-                </h6>
-                <span> 5 </span>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="card card-body mb-4">
-            <article class="icontext">
-              <span class="icon icon-sm rounded-circle bg-primary-light"
-                ><i class="text-primary material-icons md-monetization_on"></i
-              ></span>
-              <div class="text">
-                <h6 class="mb-1 card-title">
-                  <RouterLink class="main" to="/manager/categories">
-                    Categories
-                  </RouterLink>
-                </h6>
-                <span> 5 </span>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="card card-body mb-4">
-            <article class="icontext">
-              <span class="icon icon-sm rounded-circle bg-primary-light"
-                ><i class="text-primary material-icons md-monetization_on"></i
-              ></span>
-              <div class="text">
-                <h6 class="mb-1 card-title">
-                  <RouterLink class="main" to="/manager/subcategories">
-                    Sub Categories
-                  </RouterLink>
-                </h6>
-                <span> 5 </span>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="card card-body mb-4">
-            <article class="icontext">
-              <span class="icon icon-sm rounded-circle bg-primary-light"
-                ><i class="text-primary material-icons md-monetization_on"></i
-              ></span>
-              <div class="text">
-                <h6 class="mb-1 card-title">
-                  <RouterLink class="main" to="/manager/adverts">
-                    Adverts
-                  </RouterLink>
-                </h6>
-                <span> 5 </span>
-              </div>
-            </article>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <div class="card card-body mb-4">
-            <article class="icontext">
-              <span class="icon icon-sm rounded-circle bg-primary-light"
-                ><i class="text-primary material-icons md-monetization_on"></i
-              ></span>
-              <div class="text">
-                <h6 class="mb-1 card-title">
                   <RouterLink class="main" to="/manager/posts">
                     Posts
                   </RouterLink>
@@ -216,7 +58,7 @@ const openRejectModal = function () {
               </div>
             </article>
           </div>
-        </div>
+        </div> 
       </div>
       <!-- 
        -->
@@ -743,168 +585,7 @@ const openRejectModal = function () {
       </div>
     </section>
   </main>
-
-  <a-modal
-    :footer="null"
-    v-model:open="detailModalOpened"
-    width="1000px"
-    wrap-class-name="full-modal"
-    title="Post details"
-  >
-    <section class="content-main">
-      <div class="content-header">
-        <div>
-          <h2 class="content-title card-title">
-            {{ data[detailsIndex].Title }}
-          </h2>
-          <p>token : {{ data[detailsIndex].Token }}</p>
-          <h5 class="content-title card-title">
-            Category : {{ data[detailsIndex].CategoryId }}
-          </h5>
-          <h5 class="content-title card-title">
-            sub Catrgory : {{ data[detailsIndex].SubcategoryId }}
-          </h5>
-          <h5 class="content-title card-title">
-            Price : {{ formartPrice(data[detailsIndex].Price) }}
-          </h5>
-        </div>
-      </div>
-      <div class="row">
-        <div class="card-body">
-          <div
-            class="row gx-3 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 row-cols-xxl-5"
-          >
-            <template v-if="!isError && !isLoading">
-              <!-- <template  v-for="category in data"> -->
-
-              <div
-                v-for="image in data[detailsIndex].PropertyPhotos"
-                :key="image.Id"
-                class="col"
-              >
-                <div class="card card-product-grid">
-                  <div class="img-wrap">
-                    <img :src="image.Url" alt="Product" />
-                  </div>
-                </div>
-                <!-- card-product  end// -->
-              </div>
-              <!-- </template> -->
-            </template>
-          </div>
-          <!-- row.// -->
-        </div>
-      </div>
-      <h5 class="content-title card-title">
-        Location : {{ data[detailsIndex].Location }}
-      </h5>
-      <h5 class="content-title card-title">
-        Address : {{ data[detailsIndex].PropertyAddress }}
-      </h5>
-      <h5 class="content-title card-title">
-        Description : {{ data[detailsIndex].Description }}
-      </h5>
-      <div class="grid-details">
-        <template v-for="(unique, key) in data[detailsIndex].Unique">
-          <div v-if="unique" class="grid-details-item unique-block">
-            <span class="key"> {{ separatePascalCase(key) }} </span>
-            <span class="value" v-if="typeof unique === 'number'">
-              {{ unique }}
-              {{ key === "SquareMeters" ? "sqm" : "" }}
-            </span>
-
-            <template v-if="typeof unique === 'string'">
-              <span class="value" v-if="!unique.includes('[')">
-                {{ unique }}
-              </span>
-              <template v-else>
-                <div>
-                  <template
-                    v-for="(value, indexof, parent) in JSON.parse(unique)"
-                  >
-                    <span v-if="indexof !== JSON.parse(unique).length - 1">
-                      {{ value }} ,
-                    </span>
-                    <span v-else> {{ value }} </span>
-                  </template>
-                </div>
-              </template>
-            </template>
-          </div>
-        </template>
-      </div>
-    </section>
-  </a-modal>
-
-  <a-modal
-    :footer="null"
-    v-model:open="rejectModalVisible"
-    @afterClose="rejectModalVisible = false"
-    title="Add Reject Reason"
-    centered
-    style="padding: 20px 10px"
-  >
-    <div>
-      <form @submit.prevent="addRejectReason">
-        <div style="display: flex" class="">
-          <input
-            type="text"
-            v-model="rejectReasonsInput"
-            placeholder="Add reason..."
-            class="form-control"
-          />
-          <svg
-            @click="addRejectReason"
-            style="margin-left: 10px; color: gray; cursor: pointer"
-            height="40"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="w-6 h-6"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
-      </form>
-      <div style="margin-top: 15px" class="col-name">
-        <div
-          v-for="(reason, index) in rejectReasons"
-          style="
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            margin-bottom: 15px;
-          "
-        >
-          <h6 class="mb-0" style="margin-bottom: 15px">{{ reason }}</h6>
-          <svg
-            @click="removeRejectReason(index)"
-            height="20"
-            xmlns="http://www.w3.org/2000/svg"
-            style="color: red; cursor: pointer"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="w-6 h-6"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
-      </div>
-      <div style="margin-top: 15px" class="col-name">
-        <a-button @click="sendRejectRequest" type="primary" :loading="false"
-          >Reject Post</a-button
-        >
-      </div>
-    </div>
-  </a-modal>
+  
 </template>
 <style lang="less">
 .full-modal {
