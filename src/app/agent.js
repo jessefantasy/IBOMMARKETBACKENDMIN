@@ -1,8 +1,6 @@
 import axios from "axios";
-
-// axios.defaults.baseURL = "https://ibommarket.azurewebsites.net/api/";
-// axios.defaults.baseURL = "https://my-ibm-backend.onrender.com/";
-axios.defaults.baseURL = "https://ibommarketbackend.onrender.com/"; 
+ 
+axios.defaults.baseURL = import.meta.env.VITE_IBM_API_BASE_URL; 
 axios.defaults.withCredentials = false;
 const responseBody = (response) => response.data;
 

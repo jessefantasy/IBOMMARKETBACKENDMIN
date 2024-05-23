@@ -9,7 +9,7 @@ import Header from "../../generic/Header.vue";
 import NoProfileImage from "../../../assets/imgs/people/no-profile.ico"
 
 import useVuelidate from "@vuelidate/core";
-import { required, helpers } from "@vuelidate/validators";
+import { required, helpers , email } from "@vuelidate/validators";
 
 if(!localStorage.getItem("ibmManagementToken")) { 
   router.push("/login")
@@ -27,10 +27,12 @@ const fetchData = async () => {
 
 const formData = reactive({
   fullName : "",
+  email : "",
   role: "manager",
 });
 const rules = {
   fullName: { required: helpers.withMessage("Add the manager's full name", required) },
+  email : { required: helpers.withMessage("Add the manager's email address" , required ), email } ,
   role: { required: helpers.withMessage("Select advert status", required) }, 
 };
 
@@ -65,6 +67,10 @@ const { isLoading, data, error, isError } = useQuery({
 });
 
  const postAddManagerForm = async () => {
+  const result = await v$.value.$validate();
+  if(!result) {
+    return antMessage.error("Input all required fields")
+  }
   addingNewManager.value = true
   try{
     const res = await agent.Managers.addManager(formData);
@@ -202,23 +208,20 @@ const { isLoading, data, error, isError } = useQuery({
                   <div
                     :class="{ show: openedDetailsMenuIndex == index }"
                     class="dropdown-menu"
-                  >
-                    <div
-                      style="cursor: pointer"
-                      class="dropdown-item"
-                      @click="openDetailsModal(true, index)"
-                    >
-                      View detail
-                    </div>
+                  > 
                     <div style="cursor: pointer" class="dropdown-item">
-                      Accept
+                      Resume
+                    </div>
+
+                    <div style="cursor: pointer" class="dropdown-item">
+                      Pause
                     </div>
                     <div
                       style="cursor: pointer"
                       @click="openRejectModal"
                       class="dropdown-item text-warn"
                     >
-                      Reject
+                      Delete
                     </div>
                   </div>
                 </div>
@@ -272,6 +275,19 @@ const { isLoading, data, error, isError } = useQuery({
               class="form-control"
             /> 
             <span v-for="error in v$.fullName.$errors" :key="error" class="error">
+              {{ error.$message }}
+            </span>
+          </div>
+
+          <div class="mb-4">
+            <label for="email" class="form-label">Email</label>
+            <input
+              :class="{ error: v$.email.$errors[0] }"
+              name="email"
+              v-model="formData.email"
+              class="form-control"
+            /> 
+            <span v-for="error in v$.email.$errors" :key="error" class="error">
               {{ error.$message }}
             </span>
           </div>
