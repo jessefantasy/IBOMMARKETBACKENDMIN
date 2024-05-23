@@ -4,15 +4,26 @@ import agent from "@/app/agent.js";
 import { useQuery } from "@tanstack/vue-query";
 import { message as antMessage } from "ant-design-vue";
 import * as DummyJson from "@/store/dummy.json";
-// import AsideManager from "@/views/generic/AsideManager.vue";
 import AsideManager from "../../generic/AsideManager.vue";
 import Header from "../../generic/Header.vue";
+import {useRouter} from "vue-router"
 
+
+const router = useRouter()
+const logoutFunction = () => {
+  localStorage.removeItem("ibmManagementToken")
+
+  setTimeout(function() {
+    router.push("/login")
+  }, 1000);
+}
+const holdWhenFetching = [] 
 const fetchData = async () => {
-  return DummyJson.Posts;
+  // return DummyJson.Posts;
   try {
-    const res = await agent.Properties.get();
+    const res = await agent.AdminAndManager.getAllPosts();
     console.log(res);
+    holdWhenFetching.value = res
     return res;
   } catch (err) {
     console.log(err);
@@ -20,13 +31,14 @@ const fetchData = async () => {
   }
 };
 const pageNumber = ref(1);
+const trackChange = ref(false)
 const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Posts", pageNumber.value],
+  queryKey: ["Posts", trackChange],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
 function formartPrice(price) {
-  return "₦  " + price.toLocaleString();
+  return "₦  " + price?.toLocaleString();
 }
 const detailModalOpened = ref(false);
 const showModal = () => {
@@ -81,13 +93,32 @@ const removeRejectReason = function (index) {
   });
   rejectReasons.value = newRejects;
 };
-const sendRejectRequest = function () {
-  rejectModalVisible.value = false;
-  antMessage.success("Post rejected");
-};
-const openRejectModal = function () {
+const sendPostEditRequest = async function (type , postId) {
+  try {
+        if (type == 'accept') {
+     await agent.AdminAndManager.eidtPost({status : "active" , postRejectReasons : []} , postId )
+     antMessage.success("Post approved")
+    } else if(type == 'reject') {
+      await agent.AdminAndManager.eidtPost({ status : 'rejected' , postRejectReasons : rejectReasons.value  } , postId)
+     antMessage.success("Post Rejected") 
+
+    } 
+    trackChange.value = !trackChange.value
+    openedDetailsMenuIndex.value = null
+  } catch(error) {
+    console.log(error)
+     antMessage.error("Something went wrong") 
+  }
+
+    
+  rejectModalVisible.value = false; };
+const activeOpenedModal = ref(null)
+const openRejectModal = function (id) {
   rejectModalVisible.value = true;
+  activeOpenedModal.value = id
+
 };
+const statusFilter = ref("all")
 </script>
 
 <template>
@@ -134,92 +165,99 @@ const openRejectModal = function () {
               />
             </div>
             <div class="col-md-2 col-6">
-              <select class="form-select">
-                <option value="" selected>Status</option>
-                <option value="0">Active</option>
-                <option value="1">Pending</option>
-                <option value="2">Rejected</option>
+              <select v-model="statusFilter" class="form-select">
+                <option value="all" selected>All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
           </div>
         </header>
         <!-- card-header end// -->
         <div class="card-body">
-          <article v-for="(card, index) in data" class="itemlist">
-            <div class="row align-items-center">
-              <!-- <div class="col col-check flex-grow-0">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" />
-                                    </div>
-                                </div> -->
-              <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
-                <div class="itemside">
-                  <div class="left">
-                    <img
-                      style="width: 60px; height: 60px; object-fit: cover"
-                      :src="card.CoverImageUrl"
-                      class="img-sm img-thumbnail"
-                      alt="Item"
-                    />
-                  </div>
-                  <div class="info">
-                    <h6 class="mb-0">{{ card.Title }}</h6>
+          <template v-for="(card, index) in data ||holdWhenFetching ">
+            <article v-if="card.status == statusFilter || statusFilter == 'all'  " class="itemlist">
+              <div class="row align-items-center">
+                <!-- <div class="col col-check flex-grow-0">
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="checkbox" />
+                                      </div>
+                                  </div> -->
+                <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
+                  <div class="itemside">
+                    <div class="left">
+                      <img
+                        style="width: 60px; height: 60px; object-fit: cover"
+                        :src="card.coverImageUrl"
+                        class="img-sm img-thumbnail"
+                        alt="Item"
+                      />
+                    </div>
+                    <div class="info">
+                      <h6 class="mb-0">{{ card.title }}</h6>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="col-lg-2 col-sm-2 col-4 col-price">
-                <span> {{ formartPrice(card.Price) }} </span>
-              </div>
-              <div class="col-lg-2 col-sm-2 col-4 col-status">
-                <span class="badge rounded-pill alert-success">Active</span>
-              </div>
-              <div class="col-lg-2 col-sm-3 col-4 col-date">
-                <span> {{ new Date(card.DateCreated).toLocaleString() }} </span>
-              </div>
-              <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
-                <div
-                  class="btn btn-md rounded font-sm"
-                  :class="{ show: openedDetailsMenuIndex == index }"
-                  @click="openDetailsModal(true, index)"
-                >
-                  Detail
+                <div class="col-lg-2 col-sm-2 col-4 col-price">
+                  <span> {{ formartPrice(card.price) }} </span>
                 </div>
-                <div class="dropdown">
+                <div class="col-lg-2 col-sm-2 col-4 col-status">
+                  <!-- badge badge-pill badge-soft-warning -->
+
+                  <span v-if="card.status == 'active' " class="badge badge-pill badge-soft-success">{{ card.status }}</span>
+                  <span v-else-if="card.status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.status }}</span> 
+                  <span v-else-if="card.status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.status }}</span> 
+                </div>
+                <div class="col-lg-2 col-sm-3 col-4 col-date">
+                  <span> {{ new Date(card.createdAt).toLocaleString() }} </span>
+                </div>
+                <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
                   <div
-                    @click="handleMenuClicked(index)"
-                    data-bs-toggle="dropdown"
-                    class="btn btn-light rounded btn-sm font-sm"
-                  >
-                    <i class="material-icons md-more_horiz"></i>
-                  </div>
-                  <div
+                    class="btn btn-md rounded font-sm"
                     :class="{ show: openedDetailsMenuIndex == index }"
-                    class="dropdown-menu"
+                    @click="openDetailsModal(true, index)"
                   >
+                    Detail
+                  </div>
+                  <div class="dropdown">
                     <div
-                      style="cursor: pointer"
-                      class="dropdown-item"
-                      @click="openDetailsModal(true, index)"
+                      @click="handleMenuClicked(index)"
+                      data-bs-toggle="dropdown"
+                      class="btn btn-light rounded btn-sm font-sm"
                     >
-                      View detail
-                    </div>
-                    <div style="cursor: pointer" class="dropdown-item">
-                      Accept
+                      <i class="material-icons md-more_horiz"></i>
                     </div>
                     <div
-                      style="cursor: pointer"
-                      @click="openRejectModal"
-                      class="dropdown-item text-warn"
+                      :class="{ show: openedDetailsMenuIndex == index }"
+                      class="dropdown-menu"
                     >
-                      Reject
+                      <div
+                        style="cursor: pointer"
+                        class="dropdown-item"
+                        @click="openDetailsModal(true, index)"
+                      >
+                        View detail
+                      </div>
+                      <div @click="sendPostEditRequest( 'accept' , card._id  )" style="cursor: pointer" class="dropdown-item">
+                        Accept
+                      </div>
+                      <div
+                        style="cursor: pointer"
+                        @click="openRejectModal( card._id )"
+                        class="dropdown-item text-warn"
+                      >
+                        Reject
+                      </div>
                     </div>
                   </div>
+                  <!-- dropdown //end -->
                 </div>
-                <!-- dropdown //end -->
               </div>
-            </div>
-            <!-- row .// -->
-          </article>
+              <!-- row .// -->
+            </article>
+          </template>
+
           <!-- itemlist  .// -->
         </div>
         <!-- card-body end// -->
@@ -257,17 +295,17 @@ const openRejectModal = function () {
       <div class="content-header">
         <div>
           <h2 class="content-title card-title">
-            {{ data[detailsIndex].Title }}
+            {{ data[detailsIndex].title }}
           </h2>
-          <p>token : {{ data[detailsIndex].Token }}</p>
+          <p>token : {{ data[detailsIndex].token }}</p>
           <h5 class="content-title card-title">
-            Category : {{ data[detailsIndex].CategoryId }}
+            Category : {{ data[detailsIndex].categoryId }}
           </h5>
           <h5 class="content-title card-title">
-            sub Catrgory : {{ data[detailsIndex].SubcategoryId }}
+            sub Catrgory : {{ data[detailsIndex].subcategoryId }}
           </h5>
           <h5 class="content-title card-title">
-            Price : {{ formartPrice(data[detailsIndex].Price) }}
+            Price : {{ formartPrice(data[detailsIndex].price) }}
           </h5>
         </div>
       </div>
@@ -280,13 +318,13 @@ const openRejectModal = function () {
               <!-- <template  v-for="category in data"> -->
 
               <div
-                v-for="image in data[detailsIndex].PropertyPhotos"
-                :key="image.Id"
+                v-for="(image , index) in data[detailsIndex].postImages"
+                :key="index"
                 class="col"
               >
                 <div class="card card-product-grid">
                   <div class="img-wrap">
-                    <img :src="image.Url" alt="Product" />
+                    <img :src="image.url" alt="Product" />
                   </div>
                 </div>
                 <!-- card-product  end// -->
@@ -298,16 +336,23 @@ const openRejectModal = function () {
         </div>
       </div>
       <h5 class="content-title card-title">
-        Location : {{ data[detailsIndex].Location }}
+        Location : {{ data[detailsIndex].location }}
       </h5>
       <h5 class="content-title card-title">
-        Address : {{ data[detailsIndex].PropertyAddress }}
+        Address : {{ data[detailsIndex].address }}
       </h5>
       <h5 class="content-title card-title">
-        Description : {{ data[detailsIndex].Description }}
+        Description : {{ data[detailsIndex].description }}
       </h5>
+      <div v-if="data[detailsIndex].postRejectReasons.length > 0"> 
+        <h4 >Reasons for post rejection</h4>
+
+        <h6 class="badge-soft-danger" style="width: fit-content" v-for="(reason , index) in data[detailsIndex].postRejectReasons" :key="index">
+          {{  reason}}
+        </h6>
+      </div>
       <div class="grid-details">
-        <template v-for="(unique, key) in data[detailsIndex].Unique">
+        <template v-for="(unique, key) in data[detailsIndex].unique">
           <div v-if="unique" class="grid-details-item unique-block">
             <span class="key"> {{ separatePascalCase(key) }} </span>
             <span class="value" v-if="typeof unique === 'number'">
@@ -401,7 +446,13 @@ const openRejectModal = function () {
         </div>
       </div>
       <div style="margin-top: 15px" class="col-name">
-        <a-button @click="sendRejectRequest" type="primary" :loading="false"
+        <a-button @click="() => {
+          if(rejectReasons.length !== 0) {
+          sendPostEditRequest('reject' , activeOpenedModal  )
+        } else {
+         antMessage.error('Add at leas one reason for rejecting post!') 
+      }
+        }" type="primary" :loading="false"
           >Reject Post</a-button
         >
       </div>
@@ -455,5 +506,8 @@ const openRejectModal = function () {
 .dropdown-menu {
   left: -90px;
   min-width: 8rem;
+}
+.card {
+  overflow: unset;
 }
 </style>

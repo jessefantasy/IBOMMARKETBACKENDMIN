@@ -133,6 +133,10 @@ const Managers = {
   adminPauseResume :(id , type) => requests.patch("/admin-pause-resume-manager/" + id , type ),
   activate : (token) => requests.post("/manager/activate/" , token)
 }
+const AdminAndManager = {
+  getAllPosts : () => requests.get("/admin-manager/get-post" ),
+  eidtPost : (body , id) => requests.patch("/admin/admin-manager-edit-post/" + id , body)
+}
 const agent = { 
   Cards,
   Account,
@@ -142,7 +146,8 @@ const agent = {
   SubCategories,
   Properties,
   UrgentRequests,
-  Managers
+  Managers,
+  AdminAndManager,
 };
 
 export default agent;

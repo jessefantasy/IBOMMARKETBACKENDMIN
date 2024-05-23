@@ -4,6 +4,13 @@ import { RouterLink } from "vue-router";
 const dropdownStates = reactive({
   categories: false,
 });
+const logoutFunction = () => {
+  localStorage.removeItem("ibmManagementToken")
+
+  setTimeout(function() {
+    router.push("/login")
+  }, 1000);
+}
 </script>
 <template>
   <aside class="navbar-aside" id="offcanvas_aside">
@@ -33,70 +40,7 @@ const dropdownStates = reactive({
             <i class="icon material-icons md-home"></i>
             <span class="text">Dashboard</span>
           </RouterLink>
-        </li>
-        <li
-          class="menu-item"
-          :class="{
-            active: $route.path == '/manager/businesses',
-          }"
-        >
-          <RouterLink class="menu-link" to="/manager/businesses">
-            <i class="icon material-icons md-home"></i>
-            <span class="text">Businesses</span>
-          </RouterLink>
-        </li>
-        <li
-          class="menu-item"
-          :class="{
-            active: $route.path == '/manager/users',
-          }"
-        >
-          <RouterLink class="menu-link" to="/manager/users">
-            <i class="icon material-icons md-home"></i>
-            <span class="text">Users</span>
-          </RouterLink>
-        </li>
-
-        <li
-          @click.prevent="
-            dropdownStates.categories = !dropdownStates.categories
-          "
-          class="menu-item has-submenu"
-          :class="{
-            active:
-              dropdownStates.categories ||
-              $route.path == '/manager/subcategories' ||
-              $route.path == '/manager/categories',
-          }"
-        >
-          <div class="menu-link" href="#">
-            <i class="icon material-icons md-person"></i>
-            <span class="text">Categories</span>
-          </div>
-          <div class="submenu">
-            <RouterLink
-              :class="{ active: $route.path == '/manager/categories' }"
-              to="/manager/categories"
-              >Main Categories</RouterLink
-            >
-            <RouterLink
-              :class="{ active: $route.path == '/manager/subcategories' }"
-              to="/manager/subcategories"
-              >Sub Categories</RouterLink
-            >
-          </div>
-        </li>
-        <li
-          class="menu-item"
-          :class="{
-            active: $route.path == '/manager/adverts',
-          }"
-        >
-          <RouterLink class="menu-link" to="/manager/adverts">
-            <i class="icon material-icons md-comment"></i>
-            <span class="text">Advert Banners</span>
-          </RouterLink>
-        </li>
+        </li>  
         <li
           class="menu-item"
           :class="{
@@ -122,10 +66,10 @@ const dropdownStates = reactive({
           </div>
         </li>
         <li class="menu-item">
-          <a class="menu-link" href="page-blank.html">
+          <div class="menu-link cursor" >
             <i class="icon material-icons md-local_offer"></i>
-            <span class="text"> Starter page </span>
-          </a>
+            <span class="text">Logout </span>
+          </div>
         </li>
       </ul>
       <br />
@@ -133,3 +77,10 @@ const dropdownStates = reactive({
     </nav>
   </aside>
 </template>
+
+
+<style scoped>
+  .cursor {
+    cursor: pointer;
+  }
+</style>

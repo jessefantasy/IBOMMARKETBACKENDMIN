@@ -2,7 +2,7 @@
 	
 </script>
 <template> 
-	  <footer class="main-footer font-xs">
+	  <footer class="main-footer font-xs" style="position: relative;">
         <div class="row pb-30 pt-15">
             <div class="col-sm-6">
                 
@@ -16,3 +16,4 @@
         </div>
     </footer>
 </template>>
+

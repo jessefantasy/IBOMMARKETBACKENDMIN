@@ -6,13 +6,22 @@ import { message as antMessage } from "ant-design-vue";
 import * as DummyJson from "@/store/dummy.json";
 import AsideAdmin from "../../generic/AsideAdmin.vue";
 import Header from "../../generic/Header.vue";
+import {useRouter} from "vue-router"
 
 
-const holdWhenFetching = []
+const router = useRouter()
+const logoutFunction = () => {
+  localStorage.removeItem("ibmManagementToken")
+
+  setTimeout(function() {
+    router.push("/login")
+  }, 1000);
+}
+const holdWhenFetching = [] 
 const fetchData = async () => {
   // return DummyJson.Posts;
   try {
-    const res = await agent.Properties.adminGet();
+    const res = await agent.AdminAndManager.getAllPosts();
     console.log(res);
     holdWhenFetching.value = res
     return res;
@@ -29,7 +38,7 @@ const { isLoading, data, error, isError } = useQuery({
   keepPreviousData: true,
 });
 function formartPrice(price) {
-  return "₦  " + price.toLocaleString();
+  return "₦  " + price?.toLocaleString();
 }
 const detailModalOpened = ref(false);
 const showModal = () => {
@@ -87,21 +96,15 @@ const removeRejectReason = function (index) {
 const sendPostEditRequest = async function (type , postId) {
   try {
         if (type == 'accept') {
-     await agent.Properties.adminEdit({status : "active" , postRejectReasons : []} , postId )
+     await agent.AdminAndManager.eidtPost({status : "active" , postRejectReasons : []} , postId )
      antMessage.success("Post approved")
     } else if(type == 'reject') {
-      await agent.Properties.adminEdit({ status : 'rejected' , postRejectReasons : rejectReasons.value  } , postId)
+      await agent.AdminAndManager.eidtPost({ status : 'rejected' , postRejectReasons : rejectReasons.value  } , postId)
      antMessage.success("Post Rejected") 
 
-    }
-    data.value.forEach((one , index) => {
-      if(one._id == postId) {
-        console.log(one._id , postId)
-        data.value[index].Status == "pending"
-        trackChange.value = !trackChange.value
-      }
-    })
-
+    } 
+    trackChange.value = !trackChange.value
+    openedDetailsMenuIndex.value = null
   } catch(error) {
     console.log(error)
      antMessage.error("Something went wrong") 
@@ -115,7 +118,7 @@ const openRejectModal = function (id) {
   activeOpenedModal.value = id
 
 };
-const statusFilter = ref(0)
+const statusFilter = ref("all")
 </script>
 
 <template>
@@ -174,8 +177,7 @@ const statusFilter = ref(0)
         <!-- card-header end// -->
         <div class="card-body">
           <template v-for="(card, index) in data ||holdWhenFetching ">
-            
-            <article v-if="card.Status == statusFilter || statusFilter == 'all'  " class="itemlist">
+            <article v-if="card.status == statusFilter || statusFilter == 'all'  " class="itemlist">
               <div class="row align-items-center">
                 <!-- <div class="col col-check flex-grow-0">
                                       <div class="form-check">
@@ -187,28 +189,28 @@ const statusFilter = ref(0)
                     <div class="left">
                       <img
                         style="width: 60px; height: 60px; object-fit: cover"
-                        :src="card.CoverImageUrl"
+                        :src="card.coverImageUrl"
                         class="img-sm img-thumbnail"
                         alt="Item"
                       />
                     </div>
                     <div class="info">
-                      <h6 class="mb-0">{{ card.Title }}</h6>
+                      <h6 class="mb-0">{{ card.title }}</h6>
                     </div>
                   </div>
                 </div>
                 <div class="col-lg-2 col-sm-2 col-4 col-price">
-                  <span> {{ formartPrice(card.Price) }} </span>
+                  <span> {{ formartPrice(card.price) }} </span>
                 </div>
                 <div class="col-lg-2 col-sm-2 col-4 col-status">
                   <!-- badge badge-pill badge-soft-warning -->
 
-                  <span v-if="card.Status == 'active' " class="badge badge-pill badge-soft-success">{{ card.Status }}</span>
-                  <span v-else-if="card.Status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.Status }}</span> 
-                  <span v-else-if="card.Status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.Status }}</span> 
+                  <span v-if="card.status == 'active' " class="badge badge-pill badge-soft-success">{{ card.status }}</span>
+                  <span v-else-if="card.status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.status }}</span> 
+                  <span v-else-if="card.status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.status }}</span> 
                 </div>
                 <div class="col-lg-2 col-sm-3 col-4 col-date">
-                  <span> {{ new Date(card.CreatedAt).toLocaleString() }} </span>
+                  <span> {{ new Date(card.createdAt).toLocaleString() }} </span>
                 </div>
                 <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
                   <div
@@ -293,17 +295,17 @@ const statusFilter = ref(0)
       <div class="content-header">
         <div>
           <h2 class="content-title card-title">
-            {{ data[detailsIndex].Title }}
+            {{ data[detailsIndex].title }}
           </h2>
-          <p>token : {{ data[detailsIndex].Token }}</p>
+          <p>token : {{ data[detailsIndex].token }}</p>
           <h5 class="content-title card-title">
-            Category : {{ data[detailsIndex].CategoryId }}
+            Category : {{ data[detailsIndex].categoryId }}
           </h5>
           <h5 class="content-title card-title">
-            sub Catrgory : {{ data[detailsIndex].SubcategoryId }}
+            sub Catrgory : {{ data[detailsIndex].subcategoryId }}
           </h5>
           <h5 class="content-title card-title">
-            Price : {{ formartPrice(data[detailsIndex].Price) }}
+            Price : {{ formartPrice(data[detailsIndex].price) }}
           </h5>
         </div>
       </div>
@@ -316,13 +318,13 @@ const statusFilter = ref(0)
               <!-- <template  v-for="category in data"> -->
 
               <div
-                v-for="image in data[detailsIndex].PropertyPhotos"
-                :key="image.Id"
+                v-for="(image , index) in data[detailsIndex].postImages"
+                :key="index"
                 class="col"
               >
                 <div class="card card-product-grid">
                   <div class="img-wrap">
-                    <img :src="image.Url" alt="Product" />
+                    <img :src="image.url" alt="Product" />
                   </div>
                 </div>
                 <!-- card-product  end// -->
@@ -334,16 +336,24 @@ const statusFilter = ref(0)
         </div>
       </div>
       <h5 class="content-title card-title">
-        Location : {{ data[detailsIndex].Location }}
+        Location : {{ data[detailsIndex].location }}
       </h5>
       <h5 class="content-title card-title">
-        Address : {{ data[detailsIndex].PropertyAddress }}
+        Address : {{ data[detailsIndex].address }}
       </h5>
       <h5 class="content-title card-title">
-        Description : {{ data[detailsIndex].Description }}
+        Description : {{ data[detailsIndex].description }}
       </h5>
+       <div v-if="data[detailsIndex].postRejectReasons.length > 0"> 
+        <h4 >Reasons for post rejection</h4>
+
+        <h6 class="badge-soft-danger" style="width: fit-content" v-for="(reason , index) in data[detailsIndex].postRejectReasons" :key="index">
+          {{  reason}}
+        </h6>
+      </div>
+
       <div class="grid-details">
-        <template v-for="(unique, key) in data[detailsIndex].Unique">
+        <template v-for="(unique, key) in data[detailsIndex].unique">
           <div v-if="unique" class="grid-details-item unique-block">
             <span class="key"> {{ separatePascalCase(key) }} </span>
             <span class="value" v-if="typeof unique === 'number'">

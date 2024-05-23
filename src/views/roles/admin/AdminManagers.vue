@@ -78,7 +78,6 @@ const postAddManagerForm = async () => {
   if(!result) {
     return antMessage.error("Input all required fields")
   }
-  addingNewManager.value = true
   try{
     const res = await agent.Managers.addManager(formData);
     addModalVisible.value = false
@@ -86,7 +85,7 @@ const postAddManagerForm = async () => {
   } catch(error) {
     antMessage.error("Manager not added")
   } finally{
-    addingNewManager.value = false
+    addingNewManager.value = ! addingNewManager.value 
 
   }
  }
@@ -95,8 +94,8 @@ const postAddManagerForm = async () => {
 const deletingManager = ref(false)
 const sendDeleteManagerRequest = async () => {
 
-  deletingManager.value = true
-  addingNewManager.value = true
+  deletingManager.value = true 
+  
   try{
     await agent.Managers.adminDelete(data.value[openedDetailsMenuIndex.value]._id)
     antMessage.success("Manager deleter")
@@ -106,7 +105,7 @@ const sendDeleteManagerRequest = async () => {
     antMessage.error("Manager not deleted")
   } finally {
     deletingManager.value = false
-    addingNewManager.value = false
+    addingNewManager.value = ! addingNewManager.value 
     openedDetailsMenuIndex.value = null
   }
  }
@@ -114,12 +113,12 @@ const sendDeleteManagerRequest = async () => {
  const pausingManager = ref(false)
  const sendPauseResumeManagerRequest = async (type) => {
   pausingManager.value = true
-  addingNewManager.value = true
+ 
   // if(type ==)
   try{
     await agent.Managers.adminPauseResume(data.value[openedDetailsMenuIndex.value]._id , {type} )
     antMessage.success("Manager " +   type == 'active' ? "resumed" : "paused" )
-  addingNewManager.value = false
+  addingNewManager.value = ! addingNewManager.value
   } catch(error) {
     console.log(error)
     antMessage.error("Manager pause request failed")
