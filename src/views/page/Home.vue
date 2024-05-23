@@ -1,56 +1,14 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { required, email, helpers } from "@vuelidate/validators";
-import agent from "@/app/agent.js";
-import { message as antMessage } from "ant-design-vue";
+// import { ref, reactive } from "vue";
+// import useVuelidate from "@vuelidate/core";
+// import { required, helpers } from "@vuelidate/validators";
+// import agent from "@/app/agent.js";
+// import { message as antMessage } from "ant-design-vue";
 import { useRouter } from "vue-router";
-const passwordRules = helpers.regex(
-  /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
-);
 
 const router = useRouter();
 
 router.push("/login");
-
-const data = reactive({
-  Username: "",
-  Password: "",
-});
-const rules = {
-  Username: {
-    required: helpers.withMessage("Username field cannot be empty", required),
-  },
-  Password: {
-    required: helpers.withMessage("Password field cannot be empty", required),
-    passwordRules: helpers.withMessage(
-      "Password must have at least 8 characters , one upper-case, lowercase, one number and a special character",
-      passwordRules
-    ),
-  },
-};
-const v$ = useVuelidate(rules, data);
-const makingRequest = ref(false);
-
-async function submitForm() {
-  const result = await v$.value.$validate();
-
-  if (!result) {
-    return;
-  } else {
-    makingRequest.value = true;
-    try {
-      const res = await agent.Account.login(data);
-      makingRequest.value = false;
-      antMessage.success("Login successful!");
-    } catch (err) {
-      makingRequest.value = false;
-      // if () {}
-      console.log(err);
-      antMessage.error(err.response.data);
-    }
-  }
-}
 </script>
 <template>
   <main style="height: 100vh">

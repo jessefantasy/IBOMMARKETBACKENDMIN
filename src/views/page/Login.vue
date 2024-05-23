@@ -5,27 +5,27 @@ import { required, helpers } from "@vuelidate/validators";
 import agent from "../../app/agent.js";
 import { message as antMessage } from "ant-design-vue";
 import { useRouter } from "vue-router";
-import {Store} from "../../store/AdminStore.js"
+import { Store } from "../../store/AdminStore.js";
 
-const AdminStore = Store()
+const AdminStore = Store();
 // import { ErrorCallback } from "typescript";
 
-const passwordRules = helpers.regex(
-  /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
-);
+// const passwordRules = helpers.regex(
+//   /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
+// );
 const router = useRouter();
 
 interface dataInterface {
   username: string;
   password: string;
-  role : string
+  role: string;
 }
 const data: dataInterface = reactive({
   username: "",
   password: "",
-  role : ""
+  role: "",
 });
- 
+
 const rules = {
   username: {
     required: helpers.withMessage("Username field cannot be empty", required),
@@ -40,7 +40,6 @@ const rules = {
   role: {
     required: helpers.withMessage("Select your role on Ibommarket", required),
   },
-
 };
 const v$ = useVuelidate(rules, data);
 const makingRequest = ref(false);
@@ -53,37 +52,35 @@ async function submitForm() {
   } else {
     makingRequest.value = true;
     try {
-       
       const res = await agent.Account.login(data);
-      AdminStore.updateAdmin(res)
-      localStorage.setItem("ibmManagementToken" , res.Token)
+      AdminStore.updateAdmin(res);
+      localStorage.setItem("ibmManagementToken", res.Token);
       switch (res.Role) {
-              case "admin":
-                antMessage.success("Logged in as admin"); 
-                router.push("/admin");
+        case "admin":
+          antMessage.success("Logged in as admin");
+          router.push("/admin");
 
-                break;
-              case "manager":
-                antMessage.success("Logged in as manager");
-                router.push("/manager");
+          break;
+        case "manager":
+          antMessage.success("Logged in as manager");
+          router.push("/manager");
 
-                break;
-              case "marketer":
-                antMessage.success("Logged in as marketer");
-                router.push("/marketer");
+          break;
+        case "marketer":
+          antMessage.success("Logged in as marketer");
+          router.push("/marketer");
 
-                break; 
+          break;
       }
 
       makingRequest.value = false;
       // antMessage.success("Login successful!");
       console.log(res);
     } catch (err: any) {
-     
       console.log(err);
       antMessage.error(err.response.data.message);
     } finally {
-       makingRequest.value = false; 
+      makingRequest.value = false;
     }
   }
 }
@@ -149,27 +146,26 @@ async function submitForm() {
               </span>
             </div>
 
-
             <!-- form-group// -->
 
-            <div class="mb-4"> 
-                  <select 
-                    class="form-select"
-                    :class="{ error: v$.role.$errors[0] }"
-                    v-model="data.role" 
-                  > 
-                    <option v-if="!data.role" value="">Select Role</option>
-                    <option value="admin">Admin</option>
-                    <option value="manager">Manager</option>
-                    <option value="marketer">Marketer</option> 
-                  </select>  
-                   <span
-                    v-for="error in v$.role.$errors"
-                    :key="error.$message.toString()"
-                    class="error"
-                  >
-                    {{ error.$message }}
-                   </span>
+            <div class="mb-4">
+              <select
+                class="form-select"
+                :class="{ error: v$.role.$errors[0] }"
+                v-model="data.role"
+              >
+                <option v-if="!data.role" value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="marketer">Marketer</option>
+              </select>
+              <span
+                v-for="error in v$.role.$errors"
+                :key="error.$message.toString()"
+                class="error"
+              >
+                {{ error.$message }}
+              </span>
             </div>
             <!-- form-group// -->
             <div class="mb-3">
@@ -181,7 +177,7 @@ async function submitForm() {
                 <span class="form-check-label">Remember</span>
               </label>
             </div>
-           
+
             <!-- form-group form-check .// -->
             <div class="mb-4">
               <a-button
@@ -194,7 +190,6 @@ async function submitForm() {
               >
             </div>
             <!-- form-group// -->
-
           </form>
         </div>
       </div>
