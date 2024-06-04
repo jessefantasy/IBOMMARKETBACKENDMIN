@@ -73,7 +73,7 @@ function handleMenuClicked(index) {
     openedDetailsMenuIndex.value = null;
   }
 }
-const rejectModalVisible = ref(true);
+const rejectModalVisible = ref(false);
 const rejectReasons = ref([]);
 const rejectReasonsInput = ref("");
 const rejectFieldInput = ref("")
