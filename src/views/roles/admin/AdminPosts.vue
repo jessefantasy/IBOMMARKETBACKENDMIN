@@ -420,7 +420,6 @@ console.log(rejectReasons.value)
               <option value="postImages">Post Images</option>
               <option value="description">Description</option>
               <option value="address">Address</option>
-              <option value="localGovernment">Local Government</option>
               <option value="price">Price</option>
           </datalist> 
           <svg
