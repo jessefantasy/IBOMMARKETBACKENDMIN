@@ -137,6 +137,11 @@ const AdminAndManager = {
   getAllPosts : () => requests.get("/admin-manager/get-post" ),
   eidtPost : (body , id) => requests.patch("/admin/admin-manager-edit-post/" + id , body)
 }
+
+export const managerTasksApiCalls = {
+    getAllTasks : () => requests.get("/admin-manager-get-tasks"),
+    addTask : (body) => requests.post("/admin-manager-post-tasks" , body),
+}
 const agent = { 
   Cards,
   Account,
@@ -148,6 +153,7 @@ const agent = {
   UrgentRequests,
   Managers,
   AdminAndManager,
+
 };
 
 export default agent;

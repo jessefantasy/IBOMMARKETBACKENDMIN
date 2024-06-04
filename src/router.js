@@ -30,8 +30,9 @@ import AdminCategories from "./views/roles/admin/AdminCategories.vue";
 import AdminSubCategories from "./views/roles/admin/AdminSubCategories.vue";
 import AdminUsers from "./views/roles/admin/AdminUsers.vue";
 import AdminPosts from "./views/roles/admin/AdminPosts.vue";
+import AdminTasks from "./views/roles/admin/AdminTasks.vue";
 
-//
+// 
 //
 //
 //
@@ -121,9 +122,14 @@ const router = createRouter({
       component: AdminUsers,
     },
     {
-      path: "/admin/posts",
+      path: "/admin/posts", 
       name: "Admin Posts",
       component: AdminPosts,
+    },
+    {
+      path: "/admin/tasks",
+      name: "Admin Tasks",
+      component: AdminTasks,
     },
     // mamager
     {

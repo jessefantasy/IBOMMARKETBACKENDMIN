@@ -1,6 +1,8 @@
 <script setup>
 import { reactive } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink , useRouter } from "vue-router";
+
+const router = useRouter()
 const dropdownStates = reactive({
   categories: false,
 });

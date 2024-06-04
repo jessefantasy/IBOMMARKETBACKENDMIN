@@ -10,7 +10,7 @@ import {useRouter} from "vue-router"
 
 
 const router = useRouter()
-const logoutFunction = () => {
+const logoutFunction = () => { 
   localStorage.removeItem("ibmManagementToken")
 
   setTimeout(function() {
@@ -19,7 +19,7 @@ const logoutFunction = () => {
 }
 const holdWhenFetching = [] 
 const fetchData = async () => {
-  // return DummyJson.Posts;
+  // return DummyJson.Posts; 
   try {
     const res = await agent.AdminAndManager.getAllPosts();
     console.log(res);
@@ -73,13 +73,15 @@ function handleMenuClicked(index) {
     openedDetailsMenuIndex.value = null;
   }
 }
-const rejectModalVisible = ref(false);
+const rejectModalVisible = ref(true);
 const rejectReasons = ref([]);
 const rejectReasonsInput = ref("");
+const rejectFieldInput = ref("")
 const addRejectReason = function () {
-  if (rejectReasonsInput.value) {
-    rejectReasons.value.push(rejectReasonsInput.value);
+  if (rejectReasonsInput.value && rejectFieldInput.value) {
+    rejectReasons.value.push({ message: rejectReasonsInput.value , key : rejectFieldInput.value  });
     rejectReasonsInput.value = "";
+    rejectFieldInput.value = "";
   }
 };
 const removeRejectReason = function (index) {
@@ -93,7 +95,7 @@ const removeRejectReason = function (index) {
   });
   rejectReasons.value = newRejects;
 };
-const sendPostEditRequest = async function (type , postId) {
+const sendPostEditRequest = async function (type , postId) { 
   try {
         if (type == 'accept') {
      await agent.AdminAndManager.eidtPost({status : "active" , postRejectReasons : []} , postId )
@@ -119,6 +121,14 @@ const openRejectModal = function (id) {
 
 };
 const statusFilter = ref("all")
+const rejectPostBtnClicked = () => {
+  if(rejectReasons.value.length !== 0 ) {
+      sendPostEditRequest('reject' , activeOpenedModal.value  )
+  } else {
+     antMessage.error('Add at leas one reason for rejecting post!') 
+  }
+}
+console.log(rejectReasons.value)
 </script>
 
 <template>
@@ -401,6 +411,18 @@ const statusFilter = ref("all")
             placeholder="Add reason..."
             class="form-control"
           />
+                     
+          <div class="input-group" style="margin-left: 5px">
+              <input v-model="rejectFieldInput" list="reject-reason-keys" type="text" class="form-control" placeholder="Select field with issue" /> 
+          </div>
+          <datalist id="reject-reason-keys"> 
+              <option value="title">Title</option>
+              <option value="postImages">Post Images</option>
+              <option value="description">Description</option>
+              <option value="address">Address</option>
+              <option value="localGovernment">Local Government</option>
+              <option value="price">Price</option>
+          </datalist> 
           <svg
             @click="addRejectReason"
             style="margin-left: 10px; color: gray; cursor: pointer"
@@ -419,16 +441,23 @@ const statusFilter = ref("all")
         </div>
       </form>
       <div style="margin-top: 15px" class="col-name">
+        <div style="display: flex;justify-content: space-between;">
+         
+        </div>
         <div
           v-for="(reason, index) in rejectReasons"
           style="
-            display: flex;
-            width: 100%;
+            display: flex; 
             justify-content: space-between;
             margin-bottom: 15px;
           "
-        >
-          <h6 class="mb-0" style="margin-bottom: 15px">{{ reason }}</h6>
+        >    
+          <h6 class="mb-0" style="margin-bottom: 15px">
+             <b>
+            {{ reason }}
+</b>
+        </h6> 
+      
           <svg
             @click="removeRejectReason(index)"
             height="20"
@@ -447,13 +476,7 @@ const statusFilter = ref("all")
         </div>
       </div>
       <div style="margin-top: 15px" class="col-name">
-        <a-button @click="() => {
-          if(rejectReasons.length !== 0) {
-          sendPostEditRequest('reject' , activeOpenedModal  )
-        } else {
-         antMessage.error('Add at leas one reason for rejecting post!') 
-      }
-        }" type="primary" :loading="false"
+        <a-button @click="rejectPostBtnClicked" type="primary" :loading="false"
           >Reject Post</a-button
         >
       </div>
