@@ -16,7 +16,7 @@ import ManagerCategories from "./views/roles/manager/ManagerCategories.vue";
 import ManagerSubCategories from "./views/roles/manager/ManagerSubCategories.vue";
 import ManagerUsers from "./views/roles/manager/ManagerUsers.vue";
 import ManagerActivation from "./views/roles/manager/ManagerActivation.vue";
-import ManagerUrgentReqests from "./views/roles/manager/ManagerUrgentReqests.vue";
+import ManagerUrgentRequests from "./views/roles/manager/ManagerUrgentRequests.vue";
 //
 //
 //
@@ -182,7 +182,7 @@ const router = createRouter({
     {
       path: "/manager/urgent-requests",
       name: "Manager Uregent requests",
-      component: ManagerUrgentReqests,
+      component: ManagerUrgentRequests,
     },
     //
     //
