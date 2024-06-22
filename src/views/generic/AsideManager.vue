@@ -1,18 +1,18 @@
 <script setup>
 import { reactive } from "vue";
-import { RouterLink , useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
 const dropdownStates = reactive({
   categories: false,
 });
 const logoutFunction = () => {
-  localStorage.removeItem("ibmManagementToken")
+  localStorage.removeItem("ibmManagementToken");
 
-  setTimeout(function() {
-    router.push("/login")
+  setTimeout(function () {
+    router.push("/login");
   }, 1000);
-}
+};
 </script>
 <template>
   <aside class="navbar-aside" id="offcanvas_aside">
@@ -42,7 +42,7 @@ const logoutFunction = () => {
             <i class="icon material-icons md-home"></i>
             <span class="text">Dashboard</span>
           </RouterLink>
-        </li>  
+        </li>
         <li
           class="menu-item"
           :class="{
@@ -52,6 +52,17 @@ const logoutFunction = () => {
           <RouterLink class="menu-link" to="/manager/posts">
             <i class="icon material-icons md-pie_chart"></i>
             <span class="text">Posts</span>
+          </RouterLink>
+        </li>
+        <li
+          class="menu-item"
+          :class="{
+            active: $route.path == '/manager/urgent-requests',
+          }"
+        >
+          <RouterLink class="menu-link" to="/manager/urgent-requests">
+            <i class="icon material-icons md-pie_chart"></i>
+            <span class="text">Urgent Requests</span>
           </RouterLink>
         </li>
       </ul>
@@ -68,7 +79,7 @@ const logoutFunction = () => {
           </div>
         </li>
         <li class="menu-item">
-          <div class="menu-link cursor" >
+          <div class="menu-link cursor">
             <i class="icon material-icons md-local_offer"></i>
             <span class="text">Logout </span>
           </div>
@@ -80,9 +91,8 @@ const logoutFunction = () => {
   </aside>
 </template>
 
-
 <style scoped>
-  .cursor {
-    cursor: pointer;
-  }
+.cursor {
+  cursor: pointer;
+}
 </style>

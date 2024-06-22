@@ -1,17 +1,17 @@
 <script setup>
 import { reactive } from "vue";
-import { RouterLink , useRouter} from "vue-router";
-const router = useRouter()
+import { RouterLink, useRouter } from "vue-router";
+const router = useRouter();
 const dropdownStates = reactive({
   categories: false,
 });
 const logoutFunction = () => {
-  localStorage.removeItem("ibmManagementToken")
+  localStorage.removeItem("ibmManagementToken");
 
-  setTimeout(function() {
-    router.push("/login")
+  setTimeout(function () {
+    router.push("/login");
   }, 1000);
-}
+};
 </script>
 <template>
   <aside class="navbar-aside" id="offcanvas_aside">
@@ -52,7 +52,7 @@ const logoutFunction = () => {
             <i class="icon material-icons md-home"></i>
             <span class="text">Managers</span>
           </RouterLink>
-        </li> 
+        </li>
         <li
           class="menu-item"
           :class="{
@@ -63,8 +63,19 @@ const logoutFunction = () => {
             <i class="icon material-icons md-home"></i>
             <span class="text">Posts</span>
           </RouterLink>
-        </li>    
-         <li
+        </li>
+        <li
+          class="menu-item"
+          :class="{
+            active: $route.path == '/admin/urgent-requests',
+          }"
+        >
+          <RouterLink class="menu-link" to="/admin/urgent-requests">
+            <i class="icon material-icons md-home"></i>
+            <span class="text">Urgent Requests</span>
+          </RouterLink>
+        </li>
+        <li
           class="menu-item"
           :class="{
             active: $route.path == '/admin/tasks',
@@ -74,7 +85,7 @@ const logoutFunction = () => {
             <i class="icon material-icons md-home"></i>
             <span class="text">Tasks</span>
           </RouterLink>
-        </li>    
+        </li>
       </ul>
       <hr />
       <ul class="menu-aside">
@@ -89,7 +100,7 @@ const logoutFunction = () => {
           </div>
         </li>
         <li class="menu-item">
-          <div  @click="logoutFunction" class="menu-link cursor" >
+          <div @click="logoutFunction" class="menu-link cursor">
             <i class="icon material-icons md-local_offer"></i>
             <span class="text"> Logout </span>
           </div>
@@ -102,7 +113,7 @@ const logoutFunction = () => {
 </template>
 
 <style scoped>
-  .cursor {
-    cursor: pointer;
-  }
+.cursor {
+  cursor: pointer;
+}
 </style>

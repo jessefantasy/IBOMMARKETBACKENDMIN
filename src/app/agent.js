@@ -1,12 +1,11 @@
 import axios from "axios";
- 
-axios.defaults.baseURL = import.meta.env.VITE_IBM_API_BASE_URL; 
+
+axios.defaults.baseURL = import.meta.env.VITE_IBM_API_BASE_URL;
 axios.defaults.withCredentials = false;
 const responseBody = (response) => response.data;
 
 axios.interceptors.request.use((config) => {
-  const token =  localStorage.getItem("ibmManagementToken")
-  console.log(token)
+  const token = localStorage.getItem("ibmManagementToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -91,7 +90,8 @@ const Properties = {
       subcategory,
       businessid,
     }),
-  adminGet: (pageNumber = 1) => requests.get("post-admin?pageNumber=" + pageNumber),
+  adminGet: (pageNumber = 1) =>
+    requests.get("post-admin?pageNumber=" + pageNumber),
   search: (
     SearchTerm = "",
     subcategory = "",
@@ -116,33 +116,34 @@ const Properties = {
     ),
   post: (body) => requests.postForm("post", body),
   delete: (id) => requests.delete("properties/" + id),
-  adminEdit : ( body , id ) => requests.patch ("post/admin-edit/" + id , body)
+  adminEdit: (body, id) => requests.patch("post/admin-edit/" + id, body),
 };
-const UrgentRequests = {
+export const UrgentRequests = {
   get: () => requests.get("urgentRequests"),
   getOne: (id) => requests.get("urgentRequests/", id),
-  post: (body) => requests.post("urgentRequests", body),
-  put: (body) => requests.put("urgentRequests", body),
-  delete: (id) => requests.delete("urgentRequests/" + id),
+  delete: (id, body) => requests.patch("urgentRequests-delete/" + id, body),
+  activate: (id) => requests.patch("urgentRequests-activate/" + id),
   getRandom: () => requests.get("urgentRequests/randomurgentrequests"),
 };
 const Managers = {
-  getAll : () => requests.get("/admin-get-manager"),
-  addManager : (data) => requests.post("/admin-add-manager" , data),
-  adminDelete :(id) => requests.delete("/admin-delete-manager/" + id ),
-  adminPauseResume :(id , type) => requests.patch("/admin-pause-resume-manager/" + id , type ),
-  activate : (token) => requests.post("/manager/activate/" , token)
-}
+  getAll: () => requests.get("/admin-get-manager"),
+  addManager: (data) => requests.post("/admin-add-manager", data),
+  adminDelete: (id) => requests.delete("/admin-delete-manager/" + id),
+  adminPauseResume: (id, type) =>
+    requests.patch("/admin-pause-resume-manager/" + id, type),
+  activate: (token) => requests.post("/manager/activate/", token),
+};
 const AdminAndManager = {
-  getAllPosts : () => requests.get("/admin-manager/get-post" ),
-  eidtPost : (body , id) => requests.patch("/admin/admin-manager-edit-post/" + id , body)
-}
+  getAllPosts: () => requests.get("/admin-manager/get-post"),
+  eidtPost: (body, id) =>
+    requests.patch("/admin/admin-manager-edit-post/" + id, body),
+};
 
 export const managerTasksApiCalls = {
-    getAllTasks : () => requests.get("/admin-manager-get-tasks"),
-    addTask : (body) => requests.post("/admin-manager-post-tasks" , body),
-}
-const agent = { 
+  getAllTasks: () => requests.get("/admin-manager-get-tasks"),
+  addTask: (body) => requests.post("/admin-manager-post-tasks", body),
+};
+const agent = {
   Cards,
   Account,
   Advert,
@@ -153,7 +154,6 @@ const agent = {
   UrgentRequests,
   Managers,
   AdminAndManager,
-
 };
 
 export default agent;

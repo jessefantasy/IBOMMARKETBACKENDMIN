@@ -16,6 +16,7 @@ import ManagerCategories from "./views/roles/manager/ManagerCategories.vue";
 import ManagerSubCategories from "./views/roles/manager/ManagerSubCategories.vue";
 import ManagerUsers from "./views/roles/manager/ManagerUsers.vue";
 import ManagerActivation from "./views/roles/manager/ManagerActivation.vue";
+import ManagerUrgentReqests from "./views/roles/manager/ManagerUrgentReqests.vue";
 //
 //
 //
@@ -30,9 +31,10 @@ import AdminCategories from "./views/roles/admin/AdminCategories.vue";
 import AdminSubCategories from "./views/roles/admin/AdminSubCategories.vue";
 import AdminUsers from "./views/roles/admin/AdminUsers.vue";
 import AdminPosts from "./views/roles/admin/AdminPosts.vue";
+import AdminUrgentRequests from "./views/roles/admin/AdminUrgentRequests.vue";
 import AdminTasks from "./views/roles/admin/AdminTasks.vue";
 
-// 
+//
 //
 //
 //
@@ -122,9 +124,14 @@ const router = createRouter({
       component: AdminUsers,
     },
     {
-      path: "/admin/posts", 
+      path: "/admin/posts",
       name: "Admin Posts",
       component: AdminPosts,
+    },
+    {
+      path: "/admin/urgent-requests",
+      name: "Admin Urgent Requests",
+      component: AdminUrgentRequests,
     },
     {
       path: "/admin/tasks",
@@ -171,6 +178,11 @@ const router = createRouter({
       path: "/manager/activate-role",
       name: "Manager Activation",
       component: ManagerActivation,
+    },
+    {
+      path: "/manager/urgent-requests",
+      name: "Manager Uregent requests",
+      component: ManagerUrgentReqests,
     },
     //
     //

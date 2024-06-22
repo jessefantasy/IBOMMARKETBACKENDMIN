@@ -1,6 +1,5 @@
 <script setup>
 import { ref, reactive } from "vue";
-import agent, { managerTasksApiCalls } from "@/app/agent.js";
 import { useQuery } from "@tanstack/vue-query";
 import { message as antMessage } from "ant-design-vue";
 import AsideAdmin from "../../generic/AsideAdmin.vue";
@@ -10,6 +9,7 @@ import { useRouter } from "vue-router";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers, email } from "@vuelidate/validators";
 import { Store } from "../../../store/AdminStore.js";
+import { UrgentRequests } from "../../../app/agent.js";
 
 const AdminStore = Store();
 
@@ -17,18 +17,19 @@ const router = useRouter();
 if (!localStorage.getItem("ibmManagementToken")) {
   router.push("/login");
 }
-const holdManagers = ref([]);
+const holdPrevUrgentRequests = ref([]);
 const fetchData = async () => {
   try {
-    const res = await managerTasksApiCalls.getAllTasks();
+    const res = await UrgentRequests.get();
     console.log(res);
-    holdManagers.value = res;
+    holdPrevUrgentRequests.value = res;
     return res;
   } catch (err) {
     console.log(err);
     return [];
   }
 };
+const requestRejectReason = ref("");
 
 const formData = reactive({
   title: "",
@@ -63,68 +64,50 @@ function handleMenuClicked(index, id) {
 }
 const addModalVisible = ref(false);
 
-const addingNewManager = ref(false);
+const makingNetworkRequest = ref(false);
 const pageNumber = ref(1);
 
 const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["ManagersTaks", addingNewManager],
+  queryKey: ["UrgentRequests", makingNetworkRequest],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
 
-const postAddManagerForm = async () => {
-  const result = await v$.value.$validate();
-  if (!result) {
-    return antMessage.error("Input all required fields");
-  }
-  try {
-    const res = await managerTasksApiCalls.addTask({
-      ...formData,
-      admin: AdminStore.Admin.Username,
-    });
-    addModalVisible.value = false;
-    antMessage.success("Manager added");
-  } catch (error) {
-    antMessage.error("Manager not added");
-    addingNewManager.value = false;
-  } finally {
-    addingNewManager.value = !addingNewManager.value;
-  }
-};
-
 // delete manager
-const deletingManager = ref(false);
-const sendDeleteManagerRequest = async () => {
-  deletingManager.value = true;
+const sendingDeleteRequest = ref(false);
+const sendDeleteRequest = async () => {
+  if (!requestRejectReason.value)
+    return antMessage.error("Please add a reason for rejecting request");
+  if (requestRejectReason.value.length < 10)
+    return antMessage.error("Please make reason for rejection more detailed");
+  sendingDeleteRequest.value = true;
 
   try {
-    await agent.Managers.adminDelete(
-      data.value[openedDetailsMenuIndex.value]._id
-    );
-    antMessage.success("Manager deleter");
+    await UrgentRequests.delete(data.value[openedDetailsMenuIndex.value]._id, {
+      reason: requestRejectReason.value,
+    });
+    antMessage.success("Request deleted");
     openDeleteModal.value = false;
   } catch (error) {
     console.log(error);
     antMessage.error("Manager not deleted");
   } finally {
-    deletingManager.value = false;
-    addingNewManager.value = !addingNewManager.value;
-    openedDetailsMenuIndex.value = null;
+    openDeleteModal.value = false;
+    setTimeout(() => {
+      sendingDeleteRequest.value = false;
+      makingNetworkRequest.value = !makingNetworkRequest.value;
+      activeManagerId.value = null;
+      openedDetailsMenuIndex.value = null;
+    }, 100);
   }
 };
 
 const pausingManager = ref(false);
-const sendPauseResumeManagerRequest = async (type) => {
-  pausingManager.value = true;
-
-  // if(type ==)
+const sendActivateRequest = async (id) => {
   try {
-    await agent.Managers.adminPauseResume(
-      data.value[openedDetailsMenuIndex.value]._id,
-      { type }
-    );
-    antMessage.success("Manager " + type == "active" ? "resumed" : "paused");
-    addingNewManager.value = !addingNewManager.value;
+    await UrgentRequests.activate(id);
+    antMessage.success("Request  activated");
+    makingNetworkRequest.value = !makingNetworkRequest.value;
   } catch (error) {
     console.log(error);
     antMessage.error("Manager pause request failed");
@@ -148,6 +131,14 @@ function linkify(text) {
     text.replace(urlPattern, '<a href="$&" target="_blank">$&</a>')
   );
 }
+
+function formartRequestType(type) {
+  if (type == 0) return "Urgent Buy";
+  if (type == 1) return "Urgent Sell";
+  if (type == 2) return "Employee";
+  if (type == 3) return "Service";
+  if (type == 4) return "Employer";
+}
 </script>
 
 <template>
@@ -159,8 +150,10 @@ function linkify(text) {
     <section class="content-main">
       <div class="content-header">
         <div>
-          <h2 class="content-title card-title">Ibommarket Manager Tasks</h2>
-          <p>Manage ibommarket manager tasks here.</p>
+          <h2 class="content-title card-title">
+            Ibommarket Manager Urgent Requests
+          </h2>
+          <p>Manage ibommarket urgent requests here.</p>
         </div>
         <div>
           <div
@@ -219,7 +212,7 @@ function linkify(text) {
         <!-- card-header end// -->
         <div class="card-body">
           <article
-            v-for="(card, index) in data || holdManagers"
+            v-for="(card, index) in data || holdPrevUrgentRequests"
             class="itemlist"
           >
             <div class="row align-items-center">
@@ -236,14 +229,22 @@ function linkify(text) {
                 <!-- badge badge-pill badge-soft-warning -->
 
                 <span
-                  v-if="card.completed == true"
+                  v-if="card.status == 'active'"
                   class="badge badge-pill badge-soft-success"
-                  >Completed : {{ card.completed }}</span
+                >
+                  {{ card.status }}</span
                 >
                 <span
-                  v-if="card.completed == false"
+                  v-else-if="card.status == 'rejected'"
+                  class="badge badge-pill badge-soft-danger"
+                  >{{ card.status }}</span
+                >
+
+                <span
+                  v-if="card.status == 'pending'"
                   class="badge badge-pill badge-soft-warning"
-                  >Completed : {{ card.completed }}</span
+                >
+                  {{ card.status }}</span
                 >
               </div>
               <div class="col-lg-2 col-sm-3 col-4 col-date">
@@ -271,13 +272,14 @@ function linkify(text) {
                     :class="{ show: openedDetailsMenuIndex == index }"
                     class="dropdown-menu"
                   >
-                    <div style="cursor: pointer" class="dropdown-item">
-                      Delete
+                    <div
+                      @click="sendActivateRequest(card._id)"
+                      style="cursor: pointer"
+                      class="dropdown-item"
+                    >
+                      Accept
                     </div>
 
-                    <div style="cursor: pointer" class="dropdown-item">
-                      Pause
-                    </div>
                     <div
                       style="cursor: pointer"
                       @click="openDeleteModal = true"
@@ -362,7 +364,7 @@ function linkify(text) {
       <a-button
         type="submit"
         class="btn btn-md rounded font-sm hover-up"
-        :loading="addingNewManager"
+        :loading="makingNetworkRequest"
         size="large"
         @click="postAddManagerForm"
       >
@@ -374,48 +376,55 @@ function linkify(text) {
     :footer="null"
     v-model:open="openDeleteModal"
     @afterClose="openDeleteModal = false"
-    title="Delete manager advert"
+    title="Delete urgent request"
     centered
     style="padding: 20px 10px"
   >
-    <template v-if="!isLoading">
-      <h5>Do you want to remove this task?</h5>
-      <h5>Title : {{ data[openedDetailsMenuIndex]?.title }}</h5>
-      <h5 style="margin-bottom: 20px">
-        Description : {{ data[openedDetailsMenuIndex]?.description }}
-      </h5>
-      <a-button
-        type="primary"
-        class="btn btn-md rounded font-sm hover-up"
-        :loading="deletingManager"
-        size="large"
-        @click="sendDeleteManagerRequest"
-      >
-        Yes
-      </a-button>
-      <a-button
-        type=""
-        class="btn btn-md rounded font-sm hover-up"
-        :loading="addingNewManager"
-        size="large"
-        @click="
-          openDeleteModal = false;
-          openedDetailsMenuIndex = null;
-        "
-        style="margin-left: 10px; background: #00000040"
-      >
-        No
-      </a-button>
-    </template>
+    <h5>Do you want to delete this request?</h5>
+    <h5>Title : {{ data[openedDetailsMenuIndex]?.title }}</h5>
+    <h5 style="margin-bottom: 20px">
+      Description : {{ data[openedDetailsMenuIndex]?.shortDescription }}
+    </h5>
+
+    <a-textarea
+      :resize="false"
+      height="300px"
+      placeholder="Enter reason for rejecting request"
+      size="large"
+      style="margin-bottom: 20px"
+      v-model:value="requestRejectReason"
+    />
+    <a-button
+      type="primary"
+      class="btn btn-md rounded font-sm hover-up"
+      :loading="sendingDeleteRequest"
+      size="large"
+      @click="sendDeleteRequest"
+    >
+      Yes
+    </a-button>
+    <a-button
+      type=""
+      class="btn btn-md rounded font-sm hover-up"
+      :loading="makingNetworkRequest"
+      size="large"
+      @click="
+        openDeleteModal = false;
+        openedDetailsMenuIndex = null;
+      "
+      style="margin-left: 10px; background: #00000040"
+    >
+      No
+    </a-button>
   </a-modal>
 
   <a-modal
     :footer="null"
     v-model:open="detailModalOpened"
     width="1000px"
-    title="Task details"
+    title="Urgent requestt details"
   >
-    <section v-if="!isLoading" class="content-main">
+    <section class="content-main">
       <div class="content-header">
         <div>
           <h2 class="content-title card-title">
@@ -425,13 +434,15 @@ function linkify(text) {
           <h5
             class="content-title card-title"
             style="white-space: break-spaces"
-            v-html="linkify(data[detailsIndex].description)"
+            v-html="linkify(data[detailsIndex].shortDescription)"
           ></h5>
           <h3></h3>
           <h3></h3>
-          <h5 class="content-title card-title">
-            from admin : {{ data[detailsIndex].admin }}
+          <h5>
+            {{ formartRequestType(data[detailsIndex].urgentRequestType) }}
           </h5>
+          <h5>{{ data[detailsIndex].email }}</h5>
+          <h5>{{ data[detailsIndex].phoneNumber }}</h5>
         </div>
       </div>
     </section>
