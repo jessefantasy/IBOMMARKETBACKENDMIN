@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import useVuelidate from "@vuelidate/core";
-import { required, helpers , email } from "@vuelidate/validators";
+import { required, helpers, email } from "@vuelidate/validators";
 import agent from "../../app/agent.js";
 import { message as antMessage } from "ant-design-vue";
 import { useRouter } from "vue-router";
@@ -14,8 +14,7 @@ const AdminStore = Store();
 //   /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
 // );
 const router = useRouter();
-  localStorage.removeItem("ibmManagementToken")
-
+localStorage.removeItem("ibmManagementToken");
 
 interface dataInterface {
   username: string;
@@ -30,7 +29,8 @@ const data: dataInterface = reactive({
 
 const rules = {
   username: {
-    required: helpers.withMessage("email field cannot be empty", required), email
+    required: helpers.withMessage("email field cannot be empty", required),
+    email,
   },
   password: {
     required: helpers.withMessage("password field cannot be empty", required),
@@ -157,7 +157,7 @@ async function submitForm() {
                 v-model="data.role"
               >
                 <option v-if="!data.role" value="">Select Role</option>
-                <option value="admin">Admin</option>
+
                 <option value="manager">Manager</option>
                 <option value="marketer">Marketer</option>
               </select>

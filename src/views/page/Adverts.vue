@@ -87,8 +87,8 @@ async function deleteFunction() {
   <section class="content-main">
     <div class="content-header">
       <div>
-        <h2 class="content-title card-title">Ibommarket Categories</h2>
-        <p>Manage ibommarket categories here.</p>
+        <h2 class="content-title card-title">Ibommarket Homepage Adverts</h2>
+        <p>Manage ibommarket adverts here.</p>
       </div>
       <div>
         <div

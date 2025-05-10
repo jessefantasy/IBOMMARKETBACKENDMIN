@@ -31,12 +31,6 @@ const rules = {
 let v$ = useVuelidate(rules, formData);
 const makingRequest = ref(false);
 
-if (!localStorage.ibmToken) {
-  // antMessage.info("Please login to continue")
-  setTimeout(function () {
-    // router.push("/login")
-  }, 100);
-}
 const fetchData = async () => {
   return DummyJson.categories;
   const res = await agent.Categories.get();

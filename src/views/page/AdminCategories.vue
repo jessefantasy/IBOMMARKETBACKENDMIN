@@ -4,7 +4,7 @@ import agent from "@/app/agent.js";
 import { useRouter } from "vue-router";
 import { Store } from "@/store/AdminStore.js";
 import { message as antMessage } from "ant-design-vue";
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { required, email, helpers } from "@vuelidate/validators";
 import * as DummyJson from "@/store/dummy.json";
@@ -29,12 +29,15 @@ const rules = {
 let v$ = useVuelidate(rules, formData);
 const makingRequest = ref(false);
 
-if (!localStorage.ibmToken) {
-  // antMessage.info("Please login to continue")
-  setTimeout(function () {
-    // router.push("/login")
-  }, 100);
-}
+onMounted(() => {
+  if (!localStorage.ibmToken) {
+    // antMessage.info("Please login to continue")
+    setTimeout(function () {
+      // router.push("/login")
+    }, 100);
+  }
+});
+
 const fetchData = async () => {
   return DummyJson.categories;
   const res = await agent.Categories.get();

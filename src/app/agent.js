@@ -119,9 +119,9 @@ const Properties = {
   adminEdit: (body, id) => requests.patch("post/admin-edit/" + id, body),
 };
 export const UrgentRequests = {
-  get: () => requests.get("urgentRequests"),
+  get: () => requests.get("urgentRequests-admin"),
   getOne: (id) => requests.get("urgentRequests/", id),
-  delete: (id, body) => requests.patch("urgentRequests-delete/" + id, body),
+  delete: (id, body) => requests.delete("urgentRequests-delete/" + id, body),
   activate: (id) => requests.patch("urgentRequests-activate/" + id),
   getRandom: () => requests.get("urgentRequests/randomurgentrequests"),
 };
