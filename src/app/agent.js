@@ -143,6 +143,12 @@ export const managerTasksApiCalls = {
   getAllTasks: () => requests.get("/admin-manager-get-tasks"),
   addTask: (body) => requests.post("/admin-manager-post-tasks", body),
 };
+
+export const UiComponentApiCalls = {
+  getUiConfig: () => requests.get("/admin-uiconfig"),
+  updateUiConfig: (body) => requests.patch("/uiconfig", body),
+  addUiConfig: (body) => requests.post("/admin-uiconfig", body),
+};
 const agent = {
   Cards,
   Account,

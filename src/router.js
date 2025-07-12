@@ -27,6 +27,7 @@ import ManagerUrgentRequests from "./views/roles/manager/ManagerUrgentRequests.v
 import AdminHome from "./views/roles/admin/AdminHome.vue";
 import AdminAdverts from "./views/roles/admin/AdminAdverts.vue";
 import AdminManagers from "./views/roles/admin/AdminManagers.vue";
+import AdminUiConfig from "./views/roles/admin/AdminUiConfig.vue";
 import AdminCategories from "./views/roles/admin/AdminCategories.vue";
 import AdminSubCategories from "./views/roles/admin/AdminSubCategories.vue";
 import AdminUsers from "./views/roles/admin/AdminUsers.vue";
@@ -47,6 +48,7 @@ import MarketerHome from "./views/roles/marketer/MarketerHome.vue";
 import MarketerSubCategories from "./views/roles/marketer/MarketerSubCategories.vue";
 import MarketerUsers from "./views/roles/marketer/MarketerUsers.vue";
 import MarketerPosts from "./views/roles/marketer/MarketerPosts.vue";
+import AdminMarkupTest from "./views/roles/admin/AdminMarkupTest.vue";
 
 const router = createRouter({
   history: createWebHistory("/"),
@@ -109,6 +111,11 @@ const router = createRouter({
       component: AdminManagers,
     },
     {
+      path: "/admin/uiconfig",
+      name: "Admin UI Config",
+      component: AdminUiConfig,
+    },
+    {
       path: "/admin/categories",
       name: "Admin Categories",
       component: AdminCategories,
@@ -137,6 +144,11 @@ const router = createRouter({
       path: "/admin/tasks",
       name: "Admin Tasks",
       component: AdminTasks,
+    },
+    {
+      path: "/admin/markup-test",
+      name: "Admin Markkup Test",
+      component: AdminMarkupTest,
     },
     // mamager
     {

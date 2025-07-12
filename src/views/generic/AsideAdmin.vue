@@ -67,6 +67,29 @@ const logoutFunction = () => {
         <li
           class="menu-item"
           :class="{
+            active: $route.path == '/admin/uiconfig',
+          }"
+        >
+          <RouterLink class="menu-link" to="/admin/uiconfig">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              style="margin-right: 10px"
+              fill="#adb5bd"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V96H40ZM216,200H112V112H216v88Z"
+              ></path>
+            </svg>
+
+            <span class="text">UI Config</span>
+          </RouterLink>
+        </li>
+        <li
+          class="menu-item"
+          :class="{
             active: $route.path == '/admin/urgent-requests',
           }"
         >

@@ -1,124 +1,360 @@
 <script setup>
-	import { ref, reactive } from "vue"
-	import useVuelidate from "@vuelidate/core"
-	import { required,   email, helpers } from "@vuelidate/validators"
-	import agent from "@/app/agent.js"
+import { ref, reactive } from "vue";
+import useVuelidate from "@vuelidate/core";
+import { required, email, helpers } from "@vuelidate/validators";
+import agent from "@/app/agent.js";
 
-	const passwordRules = helpers.regex(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/)
-	const PhoneNumberRule = helpers.regex(/^(?:\+?234|0)[789]\d{9}$/)
+const passwordRules = helpers.regex(
+  /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
+);
+const PhoneNumberRule = helpers.regex(/^(?:\+?234|0)[789]\d{9}$/);
 
+const data = reactive({
+  Username: "",
+  Email: "",
+  Password: "",
+  PhoneNumber: "",
+});
+const rules = {
+  Username: {
+    required: helpers.withMessage("Username field cannot be empty", required),
+  },
+  Email: {
+    required: helpers.withMessage("Email field cannot be empty", required),
+    email: helpers.withMessage("Please enter a valid email address", email),
+  },
+  Password: {
+    required: helpers.withMessage("Password field cannot be empty", required),
+    passwordRules: helpers.withMessage(
+      "Password must have at least 8 characters , one upper-case, lowercase, one number and a special character",
+      passwordRules
+    ),
+  },
+  PhoneNumber: {
+    required: helpers.withMessage(
+      "PhoneNumber field cannot be empty",
+      required
+    ),
+    PhoneNumberRule: helpers.withMessage(
+      "Please enter a valid Nigerian phone number ",
+      PhoneNumberRule
+    ),
+  },
+};
 
-	const data = reactive({
-		Username: "",
-		Email: "",
-		Password: "",
-		PhoneNumber : ""
-	})
-	const rules = {
-		Username: { required: helpers.withMessage('Username field cannot be empty', required) },
-		Email: { required: helpers.withMessage('Email field cannot be empty', required), email : helpers.withMessage("Please enter a valid email address", email)  },
-		Password: { required: helpers.withMessage('Password field cannot be empty', required ) , passwordRules : helpers.withMessage('Password must have at least 8 characters , one upper-case, lowercase, one number and a special character', passwordRules) } ,
-		PhoneNumber: { required: helpers.withMessage('PhoneNumber field cannot be empty', required), PhoneNumberRule: helpers.withMessage("Please enter a valid Nigerian phone number ", PhoneNumberRule) },
+const v$ = useVuelidate(rules, data);
 
-	}
-			
-	const v$ = useVuelidate(rules, data)
+async function submitForm() {
+  const result = await v$.value.$validate();
 
-	async function submitForm () {
-		const result = await v$.value.$validate()
-
-		if (!result) {
-			return
-		} else {
-
-		}
-
-	}
+  if (!result) {
+    return;
+  } else {
+  }
+}
 </script>
 
 <template>
-    <main>
-	       <header class="main-header style-2 navbar">
-                <div class="col-brand">
-                    <a href="index.html" class="brand-wrap">
-                        <img src="@/assets/imgs/theme/logo.svg" class="logo" alt="Nest Dashboard" />
-                    </a>
-                </div>
-                <div class="col-nav">
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <RouterLink to="/login" class="requestfullscreen nav-link btn-icon">
-                            	<button class="btn btn-primary w-100"> Login</button> 
-                            </RouterLink>
-                        </li>
-                       <li class="nav-item">
-                            <div  class="requestfullscreen nav-link btn-icon"> 
-                            	<button class="btn btn-secondary w-100"> Register</button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </header>
-            <section class="content-main mt-80 mb-80">
-                <div class="card mx-auto card-login">
-                    <div class="card-body">
-                        <h4 class="card-title mb-4">Create an Account</h4>
-                         <form @submit.prevent="submitForm">
-                            <div class="mb-3">
-                                <input v-model="data.Username" :class = "{ error : v$.Username.$errors[0] }" class="form-control" placeholder="Username" type="text" />
-                                <span  v-for="error in v$.Username.$errors" :key="error" class="error"> {{ error.$message }}  </span>
-                            </div>
-                            <!-- form-group// -->
-							<div class="mb-3">
-                                <input v-model="data.Email" :class = "{ error : v$.Email.$errors[0] }" class="form-control" placeholder="Email" type="email" />
-                                <span  v-for="error in v$.Email.$errors" :key="error" class="error"> {{ error.$message }}  </span>
-                            </div>
-                            <!-- form-group// -->
-                            <div class="mb-3">
-                                <input v-model="data.Password" :class = "{ error : v$.Password.$errors[0] }" class="form-control" placeholder="Password" type="password" />
-                                <span  v-for="error in v$.Password.$errors" :key="error" class="error"> {{ error.$message }}  </span>
-                            </div>
-                            <!-- form-group form-check .// -->
-							<div class="mb-3">
-                                <input v-model="data.PhoneNumber" :class = "{ error : v$.PhoneNumber.$errors[0] }" class="form-control" placeholder="PhoneNumber" type="tel" />
-                                <span  v-for="error in v$.PhoneNumber.$errors" :key="error" class="error"> {{ error.$message }}  </span>
-                            </div>
-                            <!-- form-group// -->
-                            <div class="mb-3">
-                                <a href="#" class="float-end font-sm text-muted">Forgot password?</a>
-                                <label class="form-check">
-                                    <input  type="checkbox" class="form-check-input" checked="" />
-                                    <span class="form-check-label">Remember</span>
-                                </label>
-                            </div>
-                            <!-- form-group// -->
-                            <div class="mb-4">
-                                <a-button @click="submitForm" size="large" type="submit" class="btn btn-primary w-100">Register</a-button>
-                            </div>
-                            <!-- form-group// -->
-                        </form>
-                        <p class="text-center small text-muted mb-15">or sign up with</p>
-                        <div class="d-flex gap-2 mb-4">
-                            <a href="#" class="w-50 btn btn-light font-sm">
-                                <svg aria-hidden="true" class="icon-svg" style="vertical-align: bottom; margin-top: -4px" width="20" height="20" viewBox="0 0 20 20">
-                                    <path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z" fill="#4285F4"></path>
-                                    <path d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z" fill="#34A853"></path>
-                                    <path d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z" fill="#FBBC05"></path>
-                                    <path d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z" fill="#EA4335"></path>
-                                </svg>
-                                Google
-                            </a>
-                            <a href="#" class="w-50 btn btn-light font-sm">
-                                <svg aria-hidden="true" class="icon-svg" width="20" height="20" viewBox="0 0 20 20">
-                                    <path d="M3 1a2 2 0 00-2 2v12c0 1.1.9 2 2 2h12a2 2 0 002-2V3a2 2 0 00-2-2H3zm6.55 16v-6.2H7.46V8.4h2.09V6.61c0-2.07 1.26-3.2 3.1-3.2.88 0 1.64.07 1.87.1v2.16h-1.29c-1 0-1.19.48-1.19 1.18V8.4h2.39l-.31 2.42h-2.08V17h-2.5z" fill="#4167B2"></path>
-                                </svg>
-                                Facebook
-                            </a>
-                        </div>
-                        <p class="text-center mb-2">Already have an account? <RouterLink to="/login">Sign in now</RouterLink></p>
-                    </div>
-                </div>
-            </section> 
-        </main>	
-
+  <div class="register-bg">
+    <main class="register-main">
+      <div class="register-card">
+        <div class="register-logo">
+          <img
+            src="https://res.cloudinary.com/djp2xd5rl/image/upload/v1699784268/da-net7/hefi0ey2dxsir0kvzuba.png"
+            alt="Ibommarket Logo"
+            class="logo-img"
+          />
+        </div>
+        <h2 class="register-title">Create an Account</h2>
+        <form @submit.prevent="submitForm" class="register-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-icon">
+              <span class="icon">👤</span>
+              <input
+                id="username"
+                v-model="data.Username"
+                :class="{ error: v$.Username.$errors[0] }"
+                class="form-control"
+                placeholder="Username"
+                type="text"
+                autocomplete="username"
+              />
+            </div>
+            <span
+              v-for="error in v$.Username.$errors"
+              :key="error.$message.toString()"
+              class="error"
+              >{{ error.$message }}</span
+            >
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-icon">
+              <span class="icon">📧</span>
+              <input
+                id="email"
+                v-model="data.Email"
+                :class="{ error: v$.Email.$errors[0] }"
+                class="form-control"
+                placeholder="Email"
+                type="email"
+                autocomplete="email"
+              />
+            </div>
+            <span
+              v-for="error in v$.Email.$errors"
+              :key="error.$message.toString()"
+              class="error"
+              >{{ error.$message }}</span
+            >
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-icon">
+              <span class="icon">🔒</span>
+              <input
+                id="password"
+                v-model="data.Password"
+                :class="{ error: v$.Password.$errors[0] }"
+                class="form-control"
+                placeholder="Password"
+                type="password"
+                autocomplete="new-password"
+              />
+            </div>
+            <span
+              v-for="error in v$.Password.$errors"
+              :key="error.$message.toString()"
+              class="error"
+              >{{ error.$message }}</span
+            >
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <div class="input-icon">
+              <span class="icon">📱</span>
+              <input
+                id="phone"
+                v-model="data.PhoneNumber"
+                :class="{ error: v$.PhoneNumber.$errors[0] }"
+                class="form-control"
+                placeholder="Phone Number"
+                type="tel"
+                autocomplete="tel"
+              />
+            </div>
+            <span
+              v-for="error in v$.PhoneNumber.$errors"
+              :key="error.$message.toString()"
+              class="error"
+              >{{ error.$message }}</span
+            >
+          </div>
+          <div class="form-row">
+            <label class="remember-label">
+              <input type="checkbox" class="form-check-input" checked />
+              <span>Remember Me</span>
+            </label>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+          <div
+            v-if="
+              v$.Username.$errors[0] ||
+              v$.Email.$errors[0] ||
+              v$.Password.$errors[0] ||
+              v$.PhoneNumber.$errors[0]
+            "
+            class="form-message error-message"
+          >
+            Please fix the errors above.
+          </div>
+          <button class="register-btn" type="submit">Register</button>
+        </form>
+        <footer class="register-footer">
+          <p class="footer-text">
+            Already have an account?
+            <RouterLink to="/login" class="footer-link">Sign in now</RouterLink>
+          </p>
+          <p class="footer-text muted">
+            © {{ new Date().getFullYear() }} Ibommarket. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </main>
+  </div>
 </template>
+
+<style scoped>
+.register-bg {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0f7ff 60%, #f7941d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.register-main {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.register-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 104, 56, 0.12);
+  padding: 2.5rem 2rem 1.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.register-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.logo-img {
+  height: 40px;
+  object-fit: cover;
+}
+.register-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #006838;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.register-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.input-icon {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #e5e7eb;
+}
+.input-icon .icon {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+  color: #006838;
+}
+.form-control {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.4rem 0;
+  color: #1e293b;
+}
+.form-control.error {
+  color: #dc2626;
+}
+.error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 0.1rem;
+}
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.97rem;
+  color: #64748b;
+}
+.forgot-link {
+  color: #f7941d;
+  font-size: 0.97rem;
+  text-decoration: none;
+  transition: text-decoration 0.2s, color 0.2s;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+  color: #006838;
+}
+.register-btn {
+  width: 100%;
+  background: #006838;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 0;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 104, 56, 0.08);
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.register-btn:disabled {
+  background: #b6e2c7;
+  cursor: not-allowed;
+}
+.register-btn:hover:not(:disabled) {
+  background: #f7941d;
+  color: #fff;
+}
+.form-message {
+  width: 100%;
+  text-align: center;
+  font-size: 0.97rem;
+  margin-bottom: 0.2rem;
+}
+.error-message {
+  color: #dc2626;
+}
+.success-message {
+  color: #16a34a;
+}
+.register-footer {
+  margin-top: 1.5rem;
+  width: 100%;
+  text-align: center;
+}
+.footer-text {
+  color: #94a3b8;
+  font-size: 0.92rem;
+}
+.footer-link {
+  color: #f7941d;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover {
+  color: #006838;
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .register-card {
+    padding: 1.5rem;
+    max-width: 80vw;
+  }
+  .register-title {
+    font-size: 1.2rem;
+  }
+}
+</style>
