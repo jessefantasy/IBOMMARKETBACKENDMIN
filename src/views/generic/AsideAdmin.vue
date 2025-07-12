@@ -45,6 +45,17 @@ const logoutFunction = () => {
         <li
           class="menu-item"
           :class="{
+            active: $route.path == '/admin/adverts',
+          }"
+        >
+          <RouterLink class="menu-link" to="/admin/adverts">
+            <i class="icon material-icons md-home"></i>
+            <span class="text">Adverts</span>
+          </RouterLink>
+        </li>
+        <li
+          class="menu-item"
+          :class="{
             active: $route.path == '/admin/managers',
           }"
         >

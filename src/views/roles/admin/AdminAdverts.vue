@@ -55,7 +55,7 @@ async function postForm() {
     makingRequest.value = true;
     // const uploadData = {}
     const uploadData = new FormData();
-    uploadData.append("Name", formData.Name);
+    uploadData.append("name", formData.name);
     uploadData.append("file", formData.file);
     try {
       const res = await agent.Advert.post(uploadData);
@@ -72,7 +72,7 @@ async function postForm() {
   }
 }
 
-const deleteModal = ref(true);
+const deleteModal = ref(false);
 const deleteAdvertId = ref(null);
 
 async function deleteFunction() {
@@ -205,7 +205,7 @@ async function deleteFunction() {
         :footer="null"
         v-model:open="addModalVisible"
         @afterClose="addModalVisible = false"
-        title="Add advert"
+        title="Add advert..."
         centered
         style="padding: 20px 10px"
       >
@@ -230,7 +230,7 @@ async function deleteFunction() {
           </div>
 
           <div class="mb-4">
-            <label for="name" class="form-label">Status</label>
+            <label for="name" class="form-label">Name</label>
             <input
               :class="{ error: v$.name.$errors[0] }"
               name="status"

@@ -134,6 +134,18 @@ const openRejectModal = function () {
           <div class="card card-body mb-4">
             <article class="icontext">
               <div class="text">
+                <RouterLink class="main" to="/admin/adverts">
+                  <span> Banner Adverts </span>
+                </RouterLink>
+              </div>
+            </article>
+          </div>
+        </div>
+        <!-- //// -->
+        <div class="col-lg-3">
+          <div class="card card-body mb-4">
+            <article class="icontext">
+              <div class="text">
                 <RouterLink class="main" to="/admin/posts">
                   <span>Ibommarket Posts </span>
                 </RouterLink>
