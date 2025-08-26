@@ -34,6 +34,7 @@ import AdminUsers from "./views/roles/admin/AdminUsers.vue";
 import AdminPosts from "./views/roles/admin/AdminPosts.vue";
 import AdminUrgentRequests from "./views/roles/admin/AdminUrgentRequests.vue";
 import AdminTasks from "./views/roles/admin/AdminTasks.vue";
+import AdminPostDetails from "./views/roles/admin/AdminPostDetails.vue";
 
 //
 //
@@ -134,6 +135,11 @@ const router = createRouter({
       path: "/admin/posts",
       name: "Admin Posts",
       component: AdminPosts,
+    },
+    {
+      path: "/admin/posts/:postId",
+      name: "Admin Posts Details",
+      component: AdminPostDetails,
     },
     {
       path: "/admin/urgent-requests",

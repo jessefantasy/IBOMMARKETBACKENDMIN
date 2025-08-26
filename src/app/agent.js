@@ -72,7 +72,7 @@ const SubCategories = {
   post: (body) => requests.postForm("subcategories", body),
   delete: (id) => requests.delete("subcategories/" + id),
 };
-const Properties = {
+export const Properties = {
   get: (pageNumber = 1) => requests.get("post?pageNumber=" + pageNumber),
   search: (
     SearchTerm = "",
@@ -133,7 +133,7 @@ const Managers = {
     requests.patch("/admin-pause-resume-manager/" + id, type),
   activate: (token) => requests.post("/manager/activate/", token),
 };
-const AdminAndManager = {
+export const AdminAndManager = {
   getAllPosts: () => requests.get("/admin-manager/get-post"),
   eidtPost: (body, id) =>
     requests.patch("/admin/admin-manager-edit-post/" + id, body),
