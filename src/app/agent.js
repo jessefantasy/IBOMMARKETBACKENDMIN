@@ -108,7 +108,7 @@ export const Properties = {
       subcategory,
       businessid,
     }),
-  getOne: (token) => requests.get("post/" + token),
+  getOne: (token) => requests.get("post-admin/" + token),
   getBusinessProperties: (id) => requests.get("business/" + id),
   getSimilarProperties: (id, pageNumber = 1) =>
     requests.get(

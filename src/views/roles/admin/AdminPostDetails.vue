@@ -164,7 +164,6 @@ const sendPostEditRequest = async function (type, postId) {
       );
       antMessage.success("Post Rejected");
     }
-    openedDetailsMenuIndex.value = null;
   } catch (error) {
     antMessage.error("Something went wrong");
   }
