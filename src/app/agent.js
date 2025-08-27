@@ -134,7 +134,8 @@ const Managers = {
   activate: (token) => requests.post("/manager/activate/", token),
 };
 export const AdminAndManager = {
-  getAllPosts: () => requests.get("/admin-manager/get-post"),
+  getAllPosts: (pageNumber) =>
+    requests.get("/admin-manager/get-post", { page: pageNumber }),
   eidtPost: (body, id) =>
     requests.patch("/admin/admin-manager-edit-post/" + id, body),
 };

@@ -7,30 +7,32 @@ import * as DummyJson from "@/store/dummy.json";
 import AsideAdmin from "../../generic/AsideAdmin.vue";
 import Header from "../../generic/Header.vue";
 import { useRouter } from "vue-router";
+import PaginationControl from "../../../components/PaginationControl.vue";
 
 const router = useRouter();
 const logoutFunction = () => {
   localStorage.removeItem("ibmManagementToken");
-
   setTimeout(function () {
     router.push("/login");
   }, 1000);
 };
+
 const holdWhenFetching = [];
 const fetchData = async () => {
-  // return DummyJson.Posts;
   try {
-    const res = await agent.AdminAndManager.getAllPosts();
-    holdWhenFetching.value = res;
-    return res;
+    const res = await agent.AdminAndManager.getAllPosts(currentPage.value);
+    holdWhenFetching.value = data;
+    totalPages.value = res.totalPages;
+    return res.items;
   } catch (err) {
     return [];
   }
 };
-const pageNumber = ref(1);
+const currentPage = ref(1);
+const totalPages = ref(1);
 const trackChange = ref(false);
 const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Posts", trackChange],
+  queryKey: ["Posts", currentPage, trackChange],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
@@ -152,22 +154,9 @@ const rejectPostBtnClicked = () => {
           <p>Manage Ibommarket products.</p>
         </div>
       </div>
-      <div class="card mb-4">
+      <div class="card">
         <header class="card-header">
-          <div class="row align-items-center">
-            <!-- <div class="col col-check flex-grow-0">
-                                <div class="form-check ms-2">
-                                    <input class="form-check-input" type="checkbox" value="" />
-                                </div>
-                            </div> -->
-            <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-              <select class="form-select">
-                <option selected>All category</option>
-                <option>Electronics</option>
-                <option>Clothes</option>
-                <option>Automobile</option>
-              </select>
-            </div>
+          <div class="row">
             <div class="col-md-2 col-6">
               <input
                 @change="handleDateChange"
@@ -289,24 +278,16 @@ const rejectPostBtnClicked = () => {
         <!-- card-body end// -->
       </div>
       <!-- card end// -->
-      <div class="pagination-area mt-30 mb-50">
-        <nav aria-label="Page navigation example">
-          <ul class="pagination justify-content-start">
-            <li class="page-item active">
-              <a class="page-link" href="#">01</a>
-            </li>
-            <li class="page-item"><a class="page-link" href="#">02</a></li>
-            <li class="page-item"><a class="page-link" href="#">03</a></li>
-            <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-            <li class="page-item"><a class="page-link" href="#">16</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#"
-                ><i class="material-icons md-chevron_right"></i
-              ></a>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      <PaginationControl
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @page-changed="
+          (page) => {
+            console.log(page);
+            currentPage = page;
+          }
+        "
+      />
     </section>
   </main>
 
