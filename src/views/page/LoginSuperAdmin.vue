@@ -1,30 +1,24 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers, email } from "@vuelidate/validators";
-import agent from "../../app/agent.js";
+import { AdminRequests } from "../../app/agent.js";
 import { message as antMessage } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { Store } from "../../store/AdminStore.js";
 
 const AdminStore = Store();
-// import { ErrorCallback } from "typescript";
 
-// const passwordRules = helpers.regex(
-//   /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/
-// );
 const router = useRouter();
 localStorage.removeItem("ibmManagementToken");
 
 interface dataInterface {
   username: string;
   password: string;
-  role: string;
 }
 const data: dataInterface = reactive({
   username: "",
   password: "",
-  role: "",
 });
 
 const rules = {
@@ -34,18 +28,14 @@ const rules = {
   },
   password: {
     required: helpers.withMessage("password field cannot be empty", required),
-    // passwordRules: helpers.withMessage(
-    //   "Password must have at least 8 characters , one upper-case, lowercase, one number and a special character",
-    //   passwordRules
-    // ),
-  },
-  role: {
-    required: helpers.withMessage("Select your role on Ibommarket", required),
   },
 };
 const v$ = useVuelidate(rules, data);
 const makingRequest = ref(false);
 const successMessage = ref("");
+const setup2FaModal = ref(false);
+const loginToken = ref("");
+const verifying2Fa = ref(false);
 
 async function submitForm() {
   const result = await v$.value.$validate();
@@ -55,25 +45,10 @@ async function submitForm() {
   } else {
     makingRequest.value = true;
     try {
-      const res = await agent.Account.login(data);
-      AdminStore.updateAdmin(res);
-      localStorage.setItem("ibmManagementToken", res.Token);
-      switch (res.Role) {
-        case "manager":
-          antMessage.success("Logged in as manager");
-          router.push("/manager");
-
-          break;
-        case "marketer":
-          antMessage.success("Logged in as marketer");
-          router.push("/marketer");
-
-          break;
-      }
-      successMessage.value = "Login successful!";
-      makingRequest.value = false;
-      // antMessage.success("Login successful!");
+      const res = await AdminRequests.login(data);
+      setup2FaModal.value = true;
       console.log(res);
+      loginToken.value = res.token;
     } catch (err: any) {
       console.log(err);
       antMessage.error(err.response.data.message);
@@ -82,6 +57,54 @@ async function submitForm() {
     }
   }
 }
+
+async function setup2Fa(code: string) {
+  try {
+    verifying2Fa.value = true;
+    // Logic to setup 2FA
+    console.log(loginToken.value);
+    const res = await AdminRequests.verify2FA({
+      token: loginToken.value,
+      code: code,
+    });
+    AdminStore.updateAdmin(res);
+    localStorage.setItem("ibmManagementToken", res.Token);
+    antMessage.success("2FA setup successful!");
+
+    router.push("/admin");
+  } catch (error: any) {
+    console.log(error);
+    antMessage.error(error.response.data.message);
+  } finally {
+    verifying2Fa.value = false;
+  }
+}
+
+const otp = ref(Array(6).fill(""));
+
+// Focus next input on typing
+const handleInput = (index: number) => {
+  if (otp.value[index].length === 1 && index < otp.value.length - 1) {
+    const nextInput: any = document.querySelectorAll(".otp-input")[index + 1];
+    nextInput.focus();
+  }
+};
+
+// Handle backspace to go back
+const handleBackspace = (index: number, event: KeyboardEvent) => {
+  if (event.key === "Backspace" && !otp.value[index] && index > 0) {
+    const prevInput: any = document.querySelectorAll(".otp-input")[index - 1];
+    prevInput?.focus();
+  }
+};
+
+// Optional: watch for complete OTP
+watch(otp.value, (val) => {
+  if (val.every((digit) => digit.length === 1)) {
+    console.log("OTP entered:", val.join(""));
+    setup2Fa(val.join(""));
+  }
+});
 </script>
 <template>
   <div class="login-bg">
@@ -94,7 +117,7 @@ async function submitForm() {
             class="logo-img"
           />
         </div>
-        <h2 class="login-title">Admin Login</h2>
+        <h2 class="login-title">Super Admin Login</h2>
         <form @submit.prevent="submitForm" class="login-form">
           <div class="form-group">
             <label for="email">Email Address</label>
@@ -140,39 +163,9 @@ async function submitForm() {
               {{ error.$message }}
             </span>
           </div>
-          <div class="form-group">
-            <label for="role">Select Role</label>
-            <select
-              id="role"
-              class="form-select"
-              :class="{ error: v$.role.$errors[0] }"
-              v-model="data.role"
-            >
-              <option v-if="!data.role" value="">Select Role</option>
-              <option value="manager">Manager</option>
-              <option value="marketer">Marketer</option>
-            </select>
-            <span
-              v-for="error in v$.role.$errors"
-              :key="error.$message.toString()"
-              class="error"
-            >
-              {{ error.$message }}
-            </span>
-          </div>
-          <div class="form-row">
-            <label class="remember-label">
-              <input type="checkbox" class="form-check-input" checked />
-              <span>Remember Me</span>
-            </label>
-            <a href="#" class="forgot-link">Forgot Password?</a>
-          </div>
+
           <div
-            v-if="
-              v$.username.$errors[0] ||
-              v$.password.$errors[0] ||
-              v$.role.$errors[0]
-            "
+            v-if="v$.username.$errors[0] || v$.password.$errors[0]"
             class="form-message error-message"
           >
             Please fix the errors above.
@@ -193,9 +186,84 @@ async function submitForm() {
       </div>
     </main>
   </div>
+  <a-modal
+    v-model:visible="setup2FaModal"
+    title=" Two factor Auth"
+    :footer="null"
+    :closable="false"
+    :mask-closable="false"
+    :centered="true"
+  >
+    <div class="modal-container">
+      <span
+        >Each time you login,in addition to your password,you will use an
+        authenticator app to generate a one-time code.</span
+      >
+
+      <h5>Enter the code from your authenticator app</h5>
+
+      <div class="otp-container">
+        <input
+          v-for="(digit, index) in otp"
+          :key="index"
+          v-model="otp[index]"
+          maxlength="1"
+          @input="handleInput(index)"
+          @keydown.backspace="handleBackspace(index, $event)"
+          class="otp-input"
+          type="text"
+          inputmode="numeric"
+          :disabled="verifying2Fa"
+        />
+      </div>
+    </div>
+  </a-modal>
 </template>
 
 <style scoped>
+.otp-container {
+  display: flex;
+  gap: 10px;
+}
+.otp-input {
+  width: 40px;
+  height: 50px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-container div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-container span {
+  font-size: 12px;
+}
+.modal-container img {
+  width: 150px;
+  margin: 15px 0;
+}
+.modal-container div input {
+  width: 90%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-indent: 10px;
+}
+.modal-container div button {
+  border: none;
+  border-radius: 6px;
+  background: #006838;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin: 0 4px;
+}
 .login-bg {
   min-height: 100vh;
   width: 100vw;

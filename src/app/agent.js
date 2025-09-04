@@ -125,6 +125,10 @@ export const UrgentRequests = {
   activate: (id) => requests.patch("urgentRequests-activate/" + id),
   getRandom: () => requests.get("urgentRequests/randomurgentrequests"),
 };
+export const AdminRequests = {
+  login: (data) => requests.post("/admin-login", data),
+  verify2FA: (data) => requests.post("/verify-2fa", data),
+};
 const Managers = {
   getAll: () => requests.get("/admin-get-manager"),
   addManager: (data) => requests.post("/admin-add-manager", data),

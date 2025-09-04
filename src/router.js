@@ -50,6 +50,7 @@ import MarketerSubCategories from "./views/roles/marketer/MarketerSubCategories.
 import MarketerUsers from "./views/roles/marketer/MarketerUsers.vue";
 import MarketerPosts from "./views/roles/marketer/MarketerPosts.vue";
 import AdminMarkupTest from "./views/roles/admin/AdminMarkupTest.vue";
+import LoginSuperAdmin from "./views/page/LoginSuperAdmin.vue";
 
 const router = createRouter({
   history: createWebHistory("/"),
@@ -223,6 +224,11 @@ const router = createRouter({
       path: "/login",
       name: "Login",
       component: Login,
+    },
+    {
+      path: "/super-admin-login",
+      name: "Super Admin Login",
+      component: LoginSuperAdmin,
     },
     {
       path: "/adverts",
