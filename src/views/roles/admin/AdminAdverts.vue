@@ -33,14 +33,12 @@ const v$ = useVuelidate(rules, formData);
 const makingRequest = ref(false);
 
 const fetchData = async () => {
-  // return DummyJson.Adverts;
   const res = await agent.Advert.get();
-  console.log(res);
   return res;
 };
 
-const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Adverts"],
+const { isLoading, data, error, isError, refetch } = useQuery({
+  queryKey: ["Adverts", makingRequest.value],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
@@ -62,12 +60,16 @@ async function postForm() {
       fetchData();
       data.value.push(res);
       addModalVisible.value = false;
-      antMessage.success("category added");
-      // categories.value.push(res)
+      antMessage.success("Advert added");
+      v$.value.$reset();
+      post_Form.value.reset();
+      refetch();
     } catch (err) {
       console.log(err);
       makingRequest.value = false;
       antMessage.error("Request failed");
+    } finally {
+      makingRequest.value = false;
     }
   }
 }
@@ -78,7 +80,7 @@ const deleteAdvertId = ref(null);
 async function deleteFunction() {
   console.log(deleteAdvertId);
   const res = await agent.Advert.delete(deleteAdvertId.value);
-  fetchData();
+  refetch();
   deleteModal.value = false;
 }
 </script>
@@ -130,11 +132,11 @@ async function deleteFunction() {
             class="row gx-3 row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-xl-2 row-cols-xxl-3"
           >
             <template v-if="!isError && !isLoading">
-              <div v-for="advert in data" :key="advert.Id" class="col">
+              <div v-for="advert in data" :key="advert._id" class="col">
                 <div class="card card-product-grid">
                   <div class="id">id : {{ advert.Id }}</div>
                   <div class="img-wrap">
-                    <img :src="advert.Url" :alt="advert.Id" />
+                    <img :src="advert.Url" :alt="advert._id" />
                   </div>
                   <div class="info-wrap">
                     <div class="title text-truncate">
@@ -150,7 +152,7 @@ async function deleteFunction() {
                     <div
                       @click="
                         () => {
-                          deleteAdvertId = advert.Id;
+                          deleteAdvertId = advert._id;
                           deleteModal = true;
                         }
                       "

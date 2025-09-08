@@ -35,7 +35,7 @@ import AdminPosts from "./views/roles/admin/AdminPosts.vue";
 import AdminUrgentRequests from "./views/roles/admin/AdminUrgentRequests.vue";
 import AdminTasks from "./views/roles/admin/AdminTasks.vue";
 import AdminPostDetails from "./views/roles/admin/AdminPostDetails.vue";
-
+import AdminBusiness from "./views/roles/admin/AdminBusiness.vue";
 //
 //
 //
@@ -51,6 +51,7 @@ import MarketerUsers from "./views/roles/marketer/MarketerUsers.vue";
 import MarketerPosts from "./views/roles/marketer/MarketerPosts.vue";
 import AdminMarkupTest from "./views/roles/admin/AdminMarkupTest.vue";
 import LoginSuperAdmin from "./views/page/LoginSuperAdmin.vue";
+import AdminBusinessDetails from "./views/roles/admin/AdminBusinessDetails.vue";
 
 const router = createRouter({
   history: createWebHistory("/"),
@@ -156,6 +157,16 @@ const router = createRouter({
       path: "/admin/markup-test",
       name: "Admin Markkup Test",
       component: AdminMarkupTest,
+    },
+    {
+      path: "/admin/business",
+      name: "Admin Business",
+      component: AdminBusiness,
+    },
+    {
+      path: "/admin/business/:businessId",
+      name: "Admin Business Page",
+      component: AdminBusinessDetails,
     },
     // mamager
     {

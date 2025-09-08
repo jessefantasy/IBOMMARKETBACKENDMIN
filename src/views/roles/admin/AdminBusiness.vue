@@ -1,18 +1,16 @@
 <script setup>
 import { ref } from "vue";
-import agent from "@/app/agent.js";
+import { AdminAndManager } from "../../../app/agent";
 import { useQuery } from "@tanstack/vue-query";
 import { message as antMessage } from "ant-design-vue";
 import * as DummyJson from "@/store/dummy.json";
 import AsideAdmin from "../../generic/AsideAdmin.vue";
 import Header from "../../generic/Header.vue";
 import PaginationControl from "../../../components/PaginationControl.vue";
-
 import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
-
 const logoutFunction = () => {
   localStorage.removeItem("ibmManagementToken");
   setTimeout(function () {
@@ -23,7 +21,7 @@ const logoutFunction = () => {
 const holdWhenFetching = [];
 const fetchData = async () => {
   try {
-    const res = await agent.AdminAndManager.getAllPosts(currentPage.value);
+    const res = await AdminAndManager.getAllBusinesses(currentPage.value);
     holdWhenFetching.value = data;
     totalPages.value = res.totalPages;
     return res.items;
@@ -35,7 +33,7 @@ const currentPage = ref(Number(route.query.page) || 1);
 const totalPages = ref(1);
 const trackChange = ref(false);
 const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Posts", currentPage, trackChange],
+  queryKey: ["Businesses", currentPage, trackChange],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
@@ -104,7 +102,7 @@ const sendPostEditRequest = async function (type, postId) {
   try {
     if (type == "accept") {
       await agent.AdminAndManager.eidtPost(
-        { status: "active", postRejectReasons: [] },
+        { status: "approved", postRejectReasons: [] },
         postId
       );
       antMessage.success("Post approved");
@@ -153,8 +151,8 @@ const rejectPostBtnClicked = () => {
     <section class="content-main">
       <div class="content-header">
         <div>
-          <h2 class="content-title card-title">Products List</h2>
-          <p>Manage Ibommarket products.</p>
+          <h2 class="content-title card-title">Businesses on Ibommarket</h2>
+          <p>Manage Ibommarket Businesses.</p>
         </div>
       </div>
       <div class="card">
@@ -172,7 +170,7 @@ const rejectPostBtnClicked = () => {
             <div class="col-md-2 col-6">
               <select v-model="statusFilter" class="form-select">
                 <option value="all" selected>All Status</option>
-                <option value="active">Active</option>
+                <option value="approved">Active</option>
                 <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
               </select>
@@ -189,88 +187,45 @@ const rejectPostBtnClicked = () => {
               <div
                 style="cursor: pointer"
                 class="row align-items-center"
-                @click="router.push('/admin/posts/' + card._id)"
+                @click="router.push('/admin/business/' + card._id)"
               >
                 <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
                   <div class="itemside">
                     <div class="left">
                       <img
                         style="width: 60px; height: 60px; object-fit: cover"
-                        :src="card.coverImageUrl"
+                        :src="card.logo"
                         class="img-sm img-thumbnail"
                         alt="Item"
                       />
                     </div>
                     <div class="info">
-                      <h6 class="mb-0">{{ card.title }}</h6>
+                      <h6 class="mb-0">{{ card.businessName }}</h6>
                     </div>
                   </div>
                 </div>
                 <div class="col-lg-2 col-sm-2 col-4 col-price">
-                  <span> {{ formartPrice(card.price) }} </span>
+                  <span>IBM-{{ card.ibmId }} </span>
                 </div>
                 <div class="col-lg-2 col-sm-2 col-4 col-status">
                   <!-- badge badge-pill badge-soft-warning -->
 
                   <span
-                    v-if="card.status == 'active'"
-                    class="badge badge-pill badge-soft-success"
-                    >{{ card.status }}</span
-                  >
-                  <span
-                    v-else-if="card.status == 'pending'"
+                    v-if="card.adminStatus === 'pending'"
                     class="badge badge-pill badge-soft-warning"
-                    >{{ card.status }}</span
+                    >Pending
+                  </span>
+                  <span
+                    v-if="card.adminStatus === 'approved'"
+                    class="badge badge-pill badge-soft-success"
+                    >Approved</span
                   >
                   <span
-                    v-else-if="card.status == 'rejected'"
+                    v-if="card.adminStatus === 'rejected'"
                     class="badge badge-pill badge-soft-danger"
-                    >{{ card.status }}</span
+                    >Rejected</span
                   >
                 </div>
-                <div class="col-lg-2 col-sm-3 col-4 col-date">
-                  <span> {{ new Date(card.createdAt).toLocaleString() }} </span>
-                </div>
-                <!-- <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
-                  <div
-                    class="btn btn-md rounded font-sm"
-                    :class="{ show: openedDetailsMenuIndex == index }"
-                    @click="openDetailsModal(true, index)"
-                  >
-                    Detail
-                  </div>
-                  <div class="dropdown">
-                    <div
-                      @click="handleMenuClicked(index)"
-                      data-bs-toggle="dropdown"
-                      class="btn btn-light rounded btn-sm font-sm"
-                    >
-                      <i class="material-icons md-more_horiz"></i>
-                    </div>
-                    <div
-                      :class="{ show: openedDetailsMenuIndex == index }"
-                      class="dropdown-menu"
-                    >
-                      <div
-                        style="cursor: pointer"
-                        class="dropdown-item"
-                        @click="openDetailsModal(true, index)"
-                      >
-                        View detail
-                      </div>
-                      <div @click="sendPostEditRequest( 'accept' , card._id  )" style="cursor: pointer" class="dropdown-item">
-                        Accept
-                      </div>
-                      <div
-                        style="cursor: pointer"
-                        @click="openRejectModal( card._id )"
-                        class="dropdown-item text-warn"
-                      >
-                        Reject
-                      </div>
-                    </div>
-                  </div>
-                 </div> -->
               </div>
               <!-- row .// -->
             </article>

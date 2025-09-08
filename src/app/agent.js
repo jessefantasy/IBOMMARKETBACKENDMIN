@@ -142,6 +142,11 @@ export const AdminAndManager = {
     requests.get("/admin-manager/get-post", { page: pageNumber }),
   eidtPost: (body, id) =>
     requests.patch("/admin/admin-manager-edit-post/" + id, body),
+  getAllBusinesses: (pageNumber) =>
+    requests.get("/admin/admin-manager-get-businesses", { page: pageNumber }),
+  getBusinessDetails: (id) => requests.get("/admin-manager/get-business/" + id),
+  editBusiness: (body, id) =>
+    requests.patch("/admin/admin-manager-edit-business/" + id, body),
 };
 
 export const managerTasksApiCalls = {

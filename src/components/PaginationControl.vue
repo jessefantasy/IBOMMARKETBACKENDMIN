@@ -46,7 +46,9 @@
 
 <script setup>
 import { computed } from "vue";
-
+import { useRoute, useRouter } from "vue-router";
+const route = useRoute();
+const router = useRouter();
 const props = defineProps({
   currentPage: Number,
   totalPages: Number,
@@ -57,6 +59,7 @@ const emit = defineEmits(["page-changed"]);
 const changePage = (page) => {
   if (page >= 1 && page <= props.totalPages && page !== props.currentPage) {
     emit("page-changed", page);
+    router.push({ query: { ...route.query, page } });
   }
 };
 
@@ -88,7 +91,6 @@ const visiblePages = computed(() => {
   if (pages[pages.length - 1] !== total) {
     pages.push(total);
   }
-
   return pages;
 });
 </script>

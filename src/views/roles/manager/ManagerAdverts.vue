@@ -8,15 +8,9 @@ import { ref, reactive } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 import * as DummyJson from "@/store/dummy.json";
-import AsideManager from "../../generic/AsideManager.vue";
+import AsideAdmin from "../../generic/AsideAdmin.vue";
 import Header from "../../generic/Header.vue";
 
-// if (!localStorage.ibmToken) {
-//     // antMessage.info("Please login to continue")
-//     setTimeout(function() {
-//         router.push("/login")
-//     }, 100);
-// }
 const AdminStore = Store();
 const router = useRouter();
 
@@ -24,10 +18,12 @@ const formData = reactive({
   file: "",
   status: 2,
   advertViewPort: 3,
+  name: "",
 });
 const rules = {
   file: { required: helpers.withMessage("Please select an image", required) },
   status: { required: helpers.withMessage("Select advert status", required) },
+  name: { required: helpers.withMessage("Add a name for advert", required) },
   advertViewPort: {
     required: helpers.withMessage("Select advert Viewport", required),
   },
@@ -37,14 +33,12 @@ const v$ = useVuelidate(rules, formData);
 const makingRequest = ref(false);
 
 const fetchData = async () => {
-  return DummyJson.Adverts;
   const res = await agent.Advert.get();
-  console.log(res);
   return res;
 };
 
-const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Adverts"],
+const { isLoading, data, error, isError, refetch } = useQuery({
+  queryKey: ["Adverts", makingRequest.value],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
@@ -57,19 +51,25 @@ async function postForm() {
     return;
   } else {
     makingRequest.value = true;
-
-    const formData = new FormData(post_Form.value);
+    // const uploadData = {}
+    const uploadData = new FormData();
+    uploadData.append("name", formData.name);
+    uploadData.append("file", formData.file);
     try {
-      const res = await agent.Advert.post(formData);
+      const res = await agent.Advert.post(uploadData);
       fetchData();
       data.value.push(res);
       addModalVisible.value = false;
-      antMessage.success("category added");
-      // categories.value.push(res)
+      antMessage.success("Advert added");
+      v$.value.$reset();
+      post_Form.value.reset();
+      refetch();
     } catch (err) {
       console.log(err);
       makingRequest.value = false;
       antMessage.error("Request failed");
+    } finally {
+      makingRequest.value = false;
     }
   }
 }
@@ -80,13 +80,13 @@ const deleteAdvertId = ref(null);
 async function deleteFunction() {
   console.log(deleteAdvertId);
   const res = await agent.Advert.delete(deleteAdvertId.value);
-  fetchData();
+  refetch();
   deleteModal.value = false;
 }
 </script>
 
 <template>
-  <AsideManager />
+  <AsideAdmin />
   <main class="main-wrap">
     <div class="screen-overlay"></div>
     <Header
@@ -99,8 +99,8 @@ async function deleteFunction() {
     <section class="content-main">
       <div class="content-header">
         <div>
-          <h2 class="content-title card-title">Ibommarket Categories</h2>
-          <p>Manage ibommarket categories here.</p>
+          <h2 class="content-title card-title">Ibommarket banner Adverts</h2>
+          <p>Manage ibommarket banners here.</p>
         </div>
         <div>
           <div
@@ -132,11 +132,11 @@ async function deleteFunction() {
             class="row gx-3 row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-xl-2 row-cols-xxl-3"
           >
             <template v-if="!isError && !isLoading">
-              <div v-for="advert in data" :key="advert.Id" class="col">
+              <div v-for="advert in data" :key="advert._id" class="col">
                 <div class="card card-product-grid">
                   <div class="id">id : {{ advert.Id }}</div>
                   <div class="img-wrap">
-                    <img :src="advert.Url" :alt="advert.Id" />
+                    <img :src="advert.Url" :alt="advert._id" />
                   </div>
                   <div class="info-wrap">
                     <div class="title text-truncate">
@@ -148,6 +148,30 @@ async function deleteFunction() {
 
                     <div class="btn btn-sm font-sm rounded btn-brand">
                       <i class="material-icons md-edit"></i> Edit
+                    </div>
+                    <div
+                      @click="
+                        () => {
+                          deleteAdvertId = advert._id;
+                          deleteModal = true;
+                        }
+                      "
+                      class="btn btn-sm font-sm rounded badge-soft-danger"
+                    >
+                      <svg
+                        color="#f46a6a"
+                        height="20"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-6 h-6"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -183,7 +207,7 @@ async function deleteFunction() {
         :footer="null"
         v-model:open="addModalVisible"
         @afterClose="addModalVisible = false"
-        title="Add advert"
+        title="Add advert..."
         centered
         style="padding: 20px 10px"
       >
@@ -206,6 +230,20 @@ async function deleteFunction() {
               {{ error.$message }}
             </span>
           </div>
+
+          <div class="mb-4">
+            <label for="name" class="form-label">Name</label>
+            <input
+              :class="{ error: v$.name.$errors[0] }"
+              name="status"
+              v-model="formData.name"
+              class="form-control"
+            />
+            <span v-for="error in v$.name.$errors" :key="error" class="error">
+              {{ error.$message }}
+            </span>
+          </div>
+
           <div class="mb-4">
             <label for="name" class="form-label">Status</label>
             <select
@@ -248,6 +286,16 @@ async function deleteFunction() {
             Publish
           </a-button>
         </form>
+      </a-modal>
+      <a-modal
+        v-model:open="deleteModal"
+        @afterClose="console.log('closed')"
+        title="Delete Advert"
+        centered
+        style="padding: 20px 10px"
+        @ok="deleteFunction"
+      >
+        Do you want to delete this advert?
       </a-modal>
     </section>
   </main>
