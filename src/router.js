@@ -52,6 +52,7 @@ import MarketerPosts from "./views/roles/marketer/MarketerPosts.vue";
 import AdminMarkupTest from "./views/roles/admin/AdminMarkupTest.vue";
 import LoginSuperAdmin from "./views/page/LoginSuperAdmin.vue";
 import AdminBusinessDetails from "./views/roles/admin/AdminBusinessDetails.vue";
+import ManagerPostDetails from "./views/roles/manager/ManagerPostDetails.vue";
 
 const router = createRouter({
   history: createWebHistory("/"),
@@ -178,6 +179,11 @@ const router = createRouter({
       path: "/manager/posts",
       name: "Manager Posts",
       component: ManagerPosts,
+    },
+    {
+      path: "/manager/posts/:postId",
+      name: "Manager Posts Details",
+      component: ManagerPostDetails,
     },
     {
       path: "/manager/businesses",

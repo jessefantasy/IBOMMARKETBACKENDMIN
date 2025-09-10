@@ -4,36 +4,38 @@ import agent from "@/app/agent.js";
 import { useQuery } from "@tanstack/vue-query";
 import { message as antMessage } from "ant-design-vue";
 import * as DummyJson from "@/store/dummy.json";
-import AsideManager from "../../generic/AsideManager.vue";
 import Header from "../../generic/Header.vue";
-import {useRouter} from "vue-router"
+import PaginationControl from "../../../components/PaginationControl.vue";
 
+import { useRoute, useRouter } from "vue-router";
+import AsideManager from "../../generic/AsideManager.vue";
 
-const router = useRouter()
+const router = useRouter();
+const route = useRoute();
+
 const logoutFunction = () => {
-  localStorage.removeItem("ibmManagementToken")
-
-  setTimeout(function() {
-    router.push("/login")
+  localStorage.removeItem("ibmManagementToken");
+  setTimeout(function () {
+    router.push("/login");
   }, 1000);
-}
-const holdWhenFetching = [] 
+};
+
+const holdWhenFetching = [];
 const fetchData = async () => {
-  // return DummyJson.Posts;
   try {
-    const res = await agent.AdminAndManager.getAllPosts();
-    console.log(res);
-    holdWhenFetching.value = res
-    return res;
+    const res = await agent.AdminAndManager.getAllPosts(currentPage.value);
+    holdWhenFetching.value = data;
+    totalPages.value = res.totalPages;
+    return res.items;
   } catch (err) {
-    console.log(err);
     return [];
   }
 };
-const pageNumber = ref(1);
-const trackChange = ref(false)
+const currentPage = ref(Number(route.query.page) || 1);
+const totalPages = ref(1);
+const trackChange = ref(false);
 const { isLoading, data, error, isError } = useQuery({
-  queryKey: ["Posts", trackChange],
+  queryKey: ["Posts", currentPage, trackChange],
   queryFn: () => fetchData(),
   keepPreviousData: true,
 });
@@ -76,10 +78,15 @@ function handleMenuClicked(index) {
 const rejectModalVisible = ref(false);
 const rejectReasons = ref([]);
 const rejectReasonsInput = ref("");
+const rejectFieldInput = ref("");
 const addRejectReason = function () {
-  if (rejectReasonsInput.value) {
-    rejectReasons.value.push(rejectReasonsInput.value);
+  if (rejectReasonsInput.value && rejectFieldInput.value) {
+    rejectReasons.value.push({
+      message: rejectReasonsInput.value,
+      key: rejectFieldInput.value,
+    });
     rejectReasonsInput.value = "";
+    rejectFieldInput.value = "";
   }
 };
 const removeRejectReason = function (index) {
@@ -93,32 +100,43 @@ const removeRejectReason = function (index) {
   });
   rejectReasons.value = newRejects;
 };
-const sendPostEditRequest = async function (type , postId) {
+const sendPostEditRequest = async function (type, postId) {
   try {
-        if (type == 'accept') {
-     await agent.AdminAndManager.eidtPost({status : "active" , postRejectReasons : []} , postId )
-     antMessage.success("Post approved")
-    } else if(type == 'reject') {
-      await agent.AdminAndManager.eidtPost({ status : 'rejected' , postRejectReasons : rejectReasons.value  } , postId)
-     antMessage.success("Post Rejected") 
-
-    } 
-    trackChange.value = !trackChange.value
-    openedDetailsMenuIndex.value = null
-  } catch(error) {
-    console.log(error)
-     antMessage.error("Something went wrong") 
+    if (type == "accept") {
+      await agent.AdminAndManager.eidtPost(
+        { status: "active", postRejectReasons: [] },
+        postId
+      );
+      antMessage.success("Post approved");
+    } else if (type == "reject") {
+      await agent.AdminAndManager.eidtPost(
+        { status: "rejected", postRejectReasons: rejectReasons.value },
+        postId
+      );
+      antMessage.success("Post Rejected");
+    }
+    trackChange.value = !trackChange.value;
+    openedDetailsMenuIndex.value = null;
+  } catch (error) {
+    console.log(error);
+    antMessage.error("Something went wrong");
   }
 
-    
-  rejectModalVisible.value = false; };
-const activeOpenedModal = ref(null)
+  rejectModalVisible.value = false;
+};
+const activeOpenedModal = ref(null);
 const openRejectModal = function (id) {
   rejectModalVisible.value = true;
-  activeOpenedModal.value = id
-
+  activeOpenedModal.value = id;
 };
-const statusFilter = ref("all")
+const statusFilter = ref("all");
+const rejectPostBtnClicked = () => {
+  if (rejectReasons.value.length !== 0) {
+    sendPostEditRequest("reject", activeOpenedModal.value);
+  } else {
+    antMessage.error("Add at leas one reason for rejecting post!");
+  }
+};
 </script>
 
 <template>
@@ -139,22 +157,9 @@ const statusFilter = ref("all")
           <p>Manage Ibommarket products.</p>
         </div>
       </div>
-      <div class="card mb-4">
+      <div class="card">
         <header class="card-header">
-          <div class="row align-items-center">
-            <!-- <div class="col col-check flex-grow-0">
-                                <div class="form-check ms-2">
-                                    <input class="form-check-input" type="checkbox" value="" />
-                                </div>
-                            </div> -->
-            <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-              <select class="form-select">
-                <option selected>All category</option>
-                <option>Electronics</option>
-                <option>Clothes</option>
-                <option>Automobile</option>
-              </select>
-            </div>
+          <div class="row">
             <div class="col-md-2 col-6">
               <input
                 @change="handleDateChange"
@@ -176,14 +181,16 @@ const statusFilter = ref("all")
         </header>
         <!-- card-header end// -->
         <div class="card-body">
-          <template v-for="(card, index) in data ||holdWhenFetching ">
-            <article v-if="card.status == statusFilter || statusFilter == 'all'  " class="itemlist">
-              <div class="row align-items-center">
-                <!-- <div class="col col-check flex-grow-0">
-                                      <div class="form-check">
-                                          <input class="form-check-input" type="checkbox" />
-                                      </div>
-                                  </div> -->
+          <template v-for="(card, index) in data || holdWhenFetching">
+            <article
+              v-if="card.status == statusFilter || statusFilter == 'all'"
+              class="itemlist"
+            >
+              <div
+                style="cursor: pointer"
+                class="row align-items-center"
+                @click="router.push('/manager/posts/' + card._id)"
+              >
                 <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
                   <div class="itemside">
                     <div class="left">
@@ -205,14 +212,26 @@ const statusFilter = ref("all")
                 <div class="col-lg-2 col-sm-2 col-4 col-status">
                   <!-- badge badge-pill badge-soft-warning -->
 
-                  <span v-if="card.status == 'active' " class="badge badge-pill badge-soft-success">{{ card.status }}</span>
-                  <span v-else-if="card.status == 'pending' " class="badge badge-pill badge-soft-warning">{{ card.status }}</span> 
-                  <span v-else-if="card.status == 'rejected' " class="badge badge-pill badge-soft-danger">{{ card.status }}</span> 
+                  <span
+                    v-if="card.status == 'active'"
+                    class="badge badge-pill badge-soft-success"
+                    >{{ card.status }}</span
+                  >
+                  <span
+                    v-else-if="card.status == 'pending'"
+                    class="badge badge-pill badge-soft-warning"
+                    >{{ card.status }}</span
+                  >
+                  <span
+                    v-else-if="card.status == 'rejected'"
+                    class="badge badge-pill badge-soft-danger"
+                    >{{ card.status }}</span
+                  >
                 </div>
                 <div class="col-lg-2 col-sm-3 col-4 col-date">
                   <span> {{ new Date(card.createdAt).toLocaleString() }} </span>
                 </div>
-                <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
+                <!-- <div class="col-lg-2 col-sm-3 col-4 col-date text-end">
                   <div
                     class="btn btn-md rounded font-sm"
                     :class="{ show: openedDetailsMenuIndex == index }"
@@ -251,8 +270,7 @@ const statusFilter = ref("all")
                       </div>
                     </div>
                   </div>
-                  <!-- dropdown //end -->
-                </div>
+                 </div> -->
               </div>
               <!-- row .// -->
             </article>
@@ -263,24 +281,16 @@ const statusFilter = ref("all")
         <!-- card-body end// -->
       </div>
       <!-- card end// -->
-      <div class="pagination-area mt-30 mb-50">
-        <nav aria-label="Page navigation example">
-          <ul class="pagination justify-content-start">
-            <li class="page-item active">
-              <a class="page-link" href="#">01</a>
-            </li>
-            <li class="page-item"><a class="page-link" href="#">02</a></li>
-            <li class="page-item"><a class="page-link" href="#">03</a></li>
-            <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-            <li class="page-item"><a class="page-link" href="#">16</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#"
-                ><i class="material-icons md-chevron_right"></i
-              ></a>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      <PaginationControl
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @page-changed="
+          (page) => {
+            console.log(page);
+            currentPage = page;
+          }
+        "
+      />
     </section>
   </main>
 
@@ -318,7 +328,7 @@ const statusFilter = ref("all")
               <!-- <template  v-for="category in data"> -->
 
               <div
-                v-for="(image , index) in data[detailsIndex].postImages"
+                v-for="(image, index) in data[detailsIndex].postImages"
                 :key="index"
                 class="col"
               >
@@ -344,13 +354,19 @@ const statusFilter = ref("all")
       <h5 class="content-title card-title">
         Description : {{ data[detailsIndex].description }}
       </h5>
-      <div v-if="data[detailsIndex].postRejectReasons.length > 0"> 
-        <h4 >Reasons for post rejection</h4>
+      <div v-if="data[detailsIndex].postRejectReasons.length > 0">
+        <h4>Reasons for post rejection</h4>
 
-        <h6 class="badge-soft-danger" style="width: fit-content" v-for="(reason , index) in data[detailsIndex].postRejectReasons" :key="index">
-          {{  reason}}
+        <h6
+          class="badge-soft-danger"
+          style="width: fit-content"
+          v-for="(reason, index) in data[detailsIndex].postRejectReasons"
+          :key="index"
+        >
+          {{ reason }}
         </h6>
       </div>
+
       <div class="grid-details">
         <template v-for="(unique, key) in data[detailsIndex].unique">
           <div v-if="unique" class="grid-details-item unique-block">
@@ -400,6 +416,23 @@ const statusFilter = ref("all")
             placeholder="Add reason..."
             class="form-control"
           />
+
+          <div class="input-group" style="margin-left: 5px">
+            <input
+              v-model="rejectFieldInput"
+              list="reject-reason-keys"
+              type="text"
+              class="form-control"
+              placeholder="Select field with issue"
+            />
+          </div>
+          <datalist id="reject-reason-keys">
+            <option value="title">Title</option>
+            <option value="postImages">Post Images</option>
+            <option value="description">Description</option>
+            <option value="address">Address</option>
+            <option value="price">Price</option>
+          </datalist>
           <svg
             @click="addRejectReason"
             style="margin-left: 10px; color: gray; cursor: pointer"
@@ -418,16 +451,21 @@ const statusFilter = ref("all")
         </div>
       </form>
       <div style="margin-top: 15px" class="col-name">
+        <div style="display: flex; justify-content: space-between"></div>
         <div
           v-for="(reason, index) in rejectReasons"
           style="
             display: flex;
-            width: 100%;
             justify-content: space-between;
             margin-bottom: 15px;
           "
         >
-          <h6 class="mb-0" style="margin-bottom: 15px">{{ reason }}</h6>
+          <h6 class="mb-0" style="margin-bottom: 15px">
+            <b>
+              {{ reason }}
+            </b>
+          </h6>
+
           <svg
             @click="removeRejectReason(index)"
             height="20"
@@ -446,13 +484,7 @@ const statusFilter = ref("all")
         </div>
       </div>
       <div style="margin-top: 15px" class="col-name">
-        <a-button @click="() => {
-          if(rejectReasons.length !== 0) {
-          sendPostEditRequest('reject' , activeOpenedModal  )
-        } else {
-         antMessage.error('Add at leas one reason for rejecting post!') 
-      }
-        }" type="primary" :loading="false"
+        <a-button @click="rejectPostBtnClicked" type="primary" :loading="false"
           >Reject Post</a-button
         >
       </div>

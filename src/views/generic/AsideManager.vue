@@ -1,7 +1,6 @@
 <script setup>
 import { reactive } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-
 const router = useRouter();
 const dropdownStates = reactive({
   categories: false,
@@ -46,12 +45,47 @@ const logoutFunction = () => {
         <li
           class="menu-item"
           :class="{
+            active: $route.path == '/manager/adverts',
+          }"
+        >
+          <RouterLink class="menu-link" to="/manager/adverts">
+            <i class="icon material-icons md-home"></i>
+            <span class="text">Adverts</span>
+          </RouterLink>
+        </li>
+
+        <li
+          class="menu-item"
+          :class="{
             active: $route.path == '/manager/posts',
           }"
         >
           <RouterLink class="menu-link" to="/manager/posts">
-            <i class="icon material-icons md-pie_chart"></i>
+            <i class="icon material-icons md-home"></i>
             <span class="text">Posts</span>
+          </RouterLink>
+        </li>
+        <li
+          class="menu-item"
+          :class="{
+            active: $route.path == '/manager/uiconfig',
+          }"
+        >
+          <RouterLink class="menu-link" to="/manager/uiconfig">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              style="margin-right: 10px"
+              fill="#adb5bd"
+              viewBox="0 0 256 256"
+            >
+              <path
+                d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V96H40ZM216,200H112V112H216v88Z"
+              ></path>
+            </svg>
+
+            <span class="text">UI Config</span>
           </RouterLink>
         </li>
         <li
@@ -61,7 +95,7 @@ const logoutFunction = () => {
           }"
         >
           <RouterLink class="menu-link" to="/manager/urgent-requests">
-            <i class="icon material-icons md-pie_chart"></i>
+            <i class="icon material-icons md-home"></i>
             <span class="text">Urgent Requests</span>
           </RouterLink>
         </li>
@@ -79,9 +113,9 @@ const logoutFunction = () => {
           </div>
         </li>
         <li class="menu-item">
-          <div class="menu-link cursor">
+          <div @click="logoutFunction" class="menu-link cursor">
             <i class="icon material-icons md-local_offer"></i>
-            <span class="text">Logout </span>
+            <span class="text"> Logout </span>
           </div>
         </li>
       </ul>
